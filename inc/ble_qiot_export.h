@@ -36,10 +36,6 @@ extern "C" {
 #define IOT_BLE_UUID_DATA        0xFFE2  // used to send data to the device from server
 #define IOT_BLE_UUID_EVENT       0xFFE3  // used to send data to the server from device
 
-// TODO：zek，llsync don't care about mtu size
-// ble moudle must support Bluetooth v4.2 or higher version, that support mtu larger than 23 bytes
-#define BLE_GATT_MAX_MTU_SIZE 247
-
 typedef enum {
     GATT_CHAR_BROADCAST      = (1 << 0),  // Broadcasting of the value permitted.
     GATT_CHAR_READ           = (1 << 1),  // Reading the value permitted.
@@ -108,13 +104,19 @@ ble_qiot_ret_status_t ble_event_get_status(void);
 ble_qiot_ret_status_t ble_event_report_property(void);
 
 /**
+ * @brief  report mtu of the device to the server
+ * @note   report mtu to the server for optimizing bandwidth usage. this mtu equals (ATT_MTU - 3)
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_report_device_info(void);
+
+/**
  * @brief  post event to the server
  * @param  event_id id of the event
  * @note   the reply will be received from IOT_BLE_UUID_DATA if success
  * @return BLE_QIOT_RS_OK is success, other is error
  */
 ble_qiot_ret_status_t ble_event_post(uint8_t event_id);
-;
 
 /**
  * @brief  start llsync advertising
@@ -145,7 +147,13 @@ void ble_device_info_write_cb(const uint8_t *buf, uint16_t len);
  */
 void ble_lldata_write_cb(const uint8_t *buf, uint16_t len);
 
-// TODO: zek, this is not necessary, the broadcast should controlled by user
+/**
+ * @brief gap event connect call-back, when gap get ble connect event, use this function
+ *       tell qiot ble sdk
+ * @return none
+ */
+void ble_gap_connect_cb(void);
+
 /**
  * @brief gap event disconnect call-back, when gap get ble disconnect event, use this function
  *       tell qiot ble sdk

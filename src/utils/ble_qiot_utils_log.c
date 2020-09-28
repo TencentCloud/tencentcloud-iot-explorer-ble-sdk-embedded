@@ -17,24 +17,34 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdio.h>
-
-#include "ble_qiot_param_check.h"
+#include <string.h>
 
 #define HEX_DUMP_BYTE_PER_LINE 16
 
-void HexDump(const char *hex_name, const char *data, uint32_t data_len)
+e_ble_qiot_log_level g_log_level = BLE_QIOT_LOG_LEVEL_INFO;
+
+void ble_qiot_set_log_level(e_ble_qiot_log_level level)
+{
+    g_log_level = level;
+    return;
+}
+
+#if (0 == BLE_QIOT_USER_DEFINE_HEDUMP)
+void ble_qiot_log_hex(e_ble_qiot_log_level level, const char *hex_name, const char *data, uint32_t data_len)
 {
     char buf[HEX_DUMP_BYTE_PER_LINE * 5] = {0};
     int  line_count = 0, line = 0, byte = 0, rest = 0, start_byte = 0;
+
+    if (g_log_level < level) return;
 
     line_count = data_len / HEX_DUMP_BYTE_PER_LINE;
     if (data_len % HEX_DUMP_BYTE_PER_LINE) {
         line_count += 1;
     }
 
-    printf("\r\ndump %s, length %d\r\n", hex_name, data_len);
-    printf(" 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15\r\n");
-    printf("===============================================\r\n");
+    ble_qiot_log_raw("\r\nble qiot dump: %s, length: %d\r\n", hex_name, data_len);
+    ble_qiot_log_raw(" 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15\r\n");
+    ble_qiot_log_raw("===============================================\r\n");
     for (line = 0; line < line_count; line++) {
         start_byte = line * HEX_DUMP_BYTE_PER_LINE;
         if (data_len - start_byte < HEX_DUMP_BYTE_PER_LINE) {
@@ -61,10 +71,11 @@ void HexDump(const char *hex_name, const char *data, uint32_t data_len)
         }
         sprintf(&buf[HEX_DUMP_BYTE_PER_LINE * 3 + 2 + rest], "\r\n");
 
-        printf("%s", buf);  // do not use printf(buf), that cause '%' transfer next character
+        ble_qiot_log_raw("%s", buf);  // do not use printf(buf), that cause '%' transfer next character
     }
-    printf("\r\n");
+    ble_qiot_log_raw("\r\n");
 }
+#endif // BLE_QIOT_USER_DEFINE_HEDUMP
 
 #ifdef __cplusplus
 }

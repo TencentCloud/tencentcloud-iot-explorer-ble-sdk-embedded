@@ -20,7 +20,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdint.h>
 
-#define BLE_QIOT_SDK_VERSION "1.0.0"  // sdk version
+#define BLE_QIOT_SDK_VERSION "1.1.0"  // sdk version
 #define BLE_QIOT_SDK_DEBUG   0        // sdk debug switch
 
 // the device broadcast is controlled by the user, but we provide a mechanism to help the device save more power.
@@ -38,12 +38,23 @@ extern "C" {
 #define __ORDER_BIG_ENDIAN__    4321
 #define __BYTE_ORDER__          __ORDER_LITTLE_ENDIAN__
 
-// some sdk info needs to be output to the standard output of the device, provide functions if you need the sdk output
-#define BLE_QIOT_DEBUG_PRINT                         printf                             // debug
-#define BLE_QIOT_INFO_PRINT                          printf                             // info
-#define BLE_QIOT_WARN_PRINT                          printf                             // warning
-#define BLE_QIOT_ERROR_PRINT                         printf                             // error
-#define BLE_QIOT_HEX_PRINT(hex_name, data, data_len) HexDump(hex_name, data, data_len)  // output hex
+// in some BLE stack ble_qiot_log_hex() maybe not work, user can use there own hexdump function
+#define BLE_QIOT_USER_DEFINE_HEDUMP 0
+
+#if (1 == BLE_QIOT_USER_DEFINE_HEDUMP)
+// add your code here like this
+// #define ble_qiot_log_hex(level, hex_name, data, data_len) \
+//    do { \
+//        MY_RAW_LOG("\r\nble qiot dump: %s, length: %d\r\n", hex_name, data_len); \
+//        MY_RAW_HEXDUMP_(data, data_len); \
+//    } while(0)
+
+// or use your own hexdump function with same definition
+// void ble_qiot_log_hex(e_ble_qiot_log_level level, const char *hex_name, const char *data, uint32_t data_len);
+#endif // BLE_QIOT_USER_DEFINE_HEDUMP
+
+// Macro for logging a formatted string, the function must printf raw string without any color, prefix, newline or timestamp
+#define BLE_QIOT_LOG_PRINT(...) printf(__VA_ARGS__)
 
 // some sdk info needs to stored on the device and the address is up to you
 #define BLE_QIOT_RECORD_FLASH_ADDR 0x3f000

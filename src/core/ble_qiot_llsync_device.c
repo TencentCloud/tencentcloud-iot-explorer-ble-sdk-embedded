@@ -31,9 +31,11 @@ extern "C" {
 
 #define BLE_GET_EXPIRATION_TIME(_cur_time) ((_cur_time) + BLE_EXPIRATION_TIME)
 
-static ble_core_data    sg_core_data;        // ble data storage in flash
-static ble_device_info  sg_device_info;      // device info storage in flash
-static e_ble_bind_state sg_used_bind_state;  // bind state in used
+static ble_core_data             sg_core_data;                // ble data storage in flash
+static ble_device_info           sg_device_info;              // device info storage in flash
+static e_llsync_bind_state       sg_llsync_bind_state;        // llsync bind state in used
+static e_llsync_connection_state sg_llsync_connection_state;  // llsync connection state in used
+static e_ble_connection_state    sg_ble_connection_state;     // ble connection state in used
 
 static int memchk(const uint8_t *buf, int len)
 {
@@ -75,10 +77,10 @@ ble_qiot_ret_status_t ble_init_flash_data(void)
         ble_qiot_log_e("get device name error");
         return BLE_QIOT_RS_ERR_FLASH;
     }
-    ble_bind_state_set((e_ble_bind_state)sg_core_data.bind_state);
+    llsync_bind_state_set((e_llsync_bind_state)sg_core_data.bind_state);
 
-    ble_qiot_log_hex("core_data", (char *)&sg_core_data, sizeof(sg_core_data));
-    ble_qiot_log_hex("device_info", (char *)&sg_device_info, sizeof(sg_device_info));
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "core_data", (char *)&sg_core_data, sizeof(sg_core_data));
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "device_info", (char *)&sg_device_info, sizeof(sg_device_info));
 
     return BLE_QIOT_RS_OK;
 }
@@ -95,20 +97,46 @@ static ble_qiot_ret_status_t ble_write_core_data(ble_core_data *core_data)
     return BLE_QIOT_RS_OK;
 }
 
-void ble_bind_state_set(e_ble_bind_state new_state)
+void llsync_bind_state_set(e_llsync_bind_state new_state)
 {
-    ble_qiot_log_d("bind state: %d ---> %d\r\n", sg_used_bind_state, new_state);
-    sg_used_bind_state = new_state;
+    ble_qiot_log_d("bind state: %d ---> %d", sg_llsync_bind_state, new_state);
+    sg_llsync_bind_state = new_state;
 }
 
-e_ble_bind_state ble_bind_state_get(void)
+e_llsync_bind_state llsync_bind_state_get(void)
 {
-    return sg_used_bind_state;
+    return sg_llsync_bind_state;
+}
+
+void llsync_connection_state_set(e_llsync_connection_state new_state)
+{
+    ble_qiot_log_d("connection state: %d ---> %d", sg_llsync_connection_state, new_state);
+    sg_llsync_connection_state = new_state;
+}
+
+e_llsync_connection_state llsync_connection_state_get(void)
+{
+    return sg_llsync_connection_state;
+}
+
+void ble_connection_state_set(e_ble_connection_state new_state)
+{
+    sg_ble_connection_state = new_state;
+}
+
+e_ble_connection_state ble_connection_state_get(void)
+{
+    return sg_ble_connection_state;
 }
 
 bool ble_is_connected(void)
 {
-    return sg_used_bind_state == E_BIND_CONNECTED;
+    return sg_ble_connection_state == E_BLE_CONNECTED;
+}
+
+bool llsync_is_connected(void)
+{
+    return sg_llsync_connection_state == E_LLSYNC_CONNECTED;
 }
 
 // [1byte bind state] + [6 bytes mac] + [8bytes identify string]/[10 bytes product id]
@@ -119,10 +147,10 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
 
     int ret_len = 0;
 
-    out_buf[ret_len] = sg_used_bind_state;
+    out_buf[ret_len] = sg_llsync_bind_state;
     ret_len++;
 
-    if (E_BIND_SUCC == out_buf[0]) {
+    if (E_LLSYNC_BIND_SUCC == out_buf[0]) {
         uint8_t md5_in_buf[128]              = {0};
         uint8_t md5_in_len                   = 0;
         uint8_t md5_out_buf[MD5_DIGEST_SIZE] = {0};
@@ -146,7 +174,7 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
         memcpy(out_buf + ret_len, sg_device_info.product_id, sizeof(sg_device_info.product_id));
         ret_len += sizeof(sg_device_info.product_id);
     }
-    ble_qiot_log_hex("broadcast", out_buf, ret_len);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "broadcast", out_buf, ret_len);
 
     return ret_len;
 }
@@ -182,9 +210,9 @@ int ble_bind_get_authcode(const char *bind_data, uint16_t data_len, char *out_bu
 
     qcloud_iot_utils_base64decode(secret, sizeof(secret), (size_t *)&secret_len,
                                   (const unsigned char *)sg_device_info.psk, sizeof(sg_device_info.psk));
-    ble_qiot_log_hex("bind sign in", sign_info, sign_info_len);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "bind sign in", sign_info, sign_info_len);
     utils_hmac_sha1((const char *)sign_info, sign_info_len, out_sign, (const char *)secret, secret_len);
-    ble_qiot_log_hex("bind sign out", out_sign, sizeof(out_sign));
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "bind sign out", out_sign, sizeof(out_sign));
 
     // return [SHA1_DIGEST_SIZE bytes sign] + [x bytes device_name]
     memset(out_buf, 0, buf_len);
@@ -193,7 +221,7 @@ int ble_bind_get_authcode(const char *bind_data, uint16_t data_len, char *out_bu
 
     memcpy(out_buf + ret_len, sg_device_info.device_name, strlen(sg_device_info.device_name));
     ret_len += strlen(sg_device_info.device_name);
-    ble_qiot_log_hex("bind auth code", out_buf, ret_len);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "bind auth code", out_buf, ret_len);
 
     return ret_len;
 }
@@ -205,7 +233,7 @@ ble_qiot_ret_status_t ble_bind_write_result(const char *result, uint16_t len)
 
     ble_core_data *bind_result = (ble_core_data *)result;
 
-    ble_bind_state_set((e_ble_bind_state)bind_result->bind_state);
+    llsync_bind_state_set((e_llsync_bind_state)bind_result->bind_state);
     return ble_write_core_data(bind_result);
 }
 
@@ -213,7 +241,8 @@ ble_qiot_ret_status_t ble_unbind_write_result(void)
 {
     ble_core_data bind_result;
 
-    ble_bind_state_set(E_BIND_IDLE);
+    llsync_connection_state_set(E_LLSYNC_DISCONNECTED);
+    llsync_bind_state_set(E_LLSYNC_BIND_IDLE);
     memset(&bind_result, 0, sizeof(bind_result));
     return ble_write_core_data(&bind_result);
 }
@@ -235,9 +264,9 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     timestamp = NTOHL(((ble_conn_data *)conn_data)->timestamp);
     snprintf(sign_info + sign_info_len, sizeof(sign_info) - sign_info_len, "%d", timestamp);
     sign_info_len += strlen(sign_info + sign_info_len);
-    ble_qiot_log_hex("valid sign in", sign_info, sign_info_len);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign in", sign_info, sign_info_len);
     utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
-    ble_qiot_log_hex("valid sign out", out_sign, SHA1_DIGEST_SIZE);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign out", out_sign, SHA1_DIGEST_SIZE);
     if (0 != memcmp(((ble_conn_data *)conn_data)->sign_info, out_sign, SHA1_DIGEST_SIZE)) {
         ble_qiot_log_e("invalid connect sign");
         return BLE_QIOT_RS_VALID_SIGN_ERR;
@@ -256,9 +285,9 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     memcpy(sign_info + sign_info_len, sg_device_info.device_name, strlen(sg_device_info.device_name));
     sign_info_len += strlen(sg_device_info.device_name);
 
-    ble_qiot_log_hex("conn sign in", sign_info, sign_info_len);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "conn sign in", sign_info, sign_info_len);
     utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
-    ble_qiot_log_hex("conn sign out", out_sign, sizeof(out_sign));
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "conn sign out", out_sign, sizeof(out_sign));
 
     // return authcode
     memset(out_buf, 0, buf_len);
@@ -266,9 +295,7 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     ret_len += SHA1_DIGEST_SIZE;
     memcpy(out_buf + ret_len, sg_device_info.device_name, strlen(sg_device_info.device_name));
     ret_len += strlen(sg_device_info.device_name);
-    ble_qiot_log_hex("conn auth code", out_buf, ret_len);
-
-    ble_bind_state_set(E_BIND_CONNECTED);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "conn auth code", out_buf, ret_len);
 
     return ret_len;
 }
@@ -289,7 +316,7 @@ int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *ou
     memcpy(sign_info, BLE_UNBIND_REQUEST_STR, BLE_UNBIND_REQUEST_STR_LEN);
     sign_info_len += BLE_UNBIND_REQUEST_STR_LEN;
     utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
-    ble_qiot_log_hex("valid sign out", out_sign, SHA1_DIGEST_SIZE);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign out", out_sign, SHA1_DIGEST_SIZE);
 
     if (0 != memcmp(((ble_unbind_data *)unbind_data)->sign_info, out_sign, SHA1_DIGEST_SIZE)) {
         ble_qiot_log_e("invalid unbind sign");
@@ -303,7 +330,7 @@ int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *ou
     memcpy(sign_info, BLE_UNBIND_RESPONSE, strlen(BLE_UNBIND_RESPONSE));
     sign_info_len += BLE_UNBIND_RESPONSE_STR_LEN;
     utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
-    ble_qiot_log_hex("unbind auth code", out_sign, SHA1_DIGEST_SIZE);
+    ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "unbind auth code", out_sign, SHA1_DIGEST_SIZE);
 
     memset(out_buf, 0, buf_len);
     memcpy(out_buf, out_sign, sizeof(out_sign));

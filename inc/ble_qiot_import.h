@@ -19,12 +19,25 @@ extern "C" {
 #include <stdint.h>
 #include "ble_qiot_export.h"
 
-// advertise manufacture specific data
-typedef struct {
+// 16 bits service UUIDs list, use advertising type 0x02 or 0x03
+typedef struct
+{
+    uint8_t uuid_num;
+    uint16_t *uuids;
+} uuid_list_s;
+
+// advertise manufacture specific data, use advertising type 0xFF
+typedef struct 
+{
     uint16_t company_identifier;
     uint8_t *adv_data;
     uint8_t  adv_data_len;
-} adv_info;
+} manufacturer_data_s;
+
+typedef struct {
+    uuid_list_s uuid_info;
+    manufacturer_data_s manufacturer_info;
+} adv_info_s;
 
 /**
  * @brief  get device product id
@@ -84,7 +97,7 @@ void ble_services_add(const qiot_service_init_s *p_service);
  * @param adv a pointer point to advertising data
  * @return BLE_QIOT_RS_OK is success, other is error
  */
-ble_qiot_ret_status_t ble_advertising_start(adv_info *adv);
+ble_qiot_ret_status_t ble_advertising_start(adv_info_s *adv);
 
 /**
  * @brief stop advertising

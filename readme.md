@@ -29,7 +29,7 @@ qcloud_iot_explorer_ble
   ├─inc                               # 头文件
   ├─samples                           # 参考实现源码
   │   ├─esp32                         # esp32例程
-  │   ├─lifesense                     # lifesense例程
+  │   ├─lifesense                     # apollo3 blue例程
   │   ├─nrf52832                      # nordic 52832例程
   ├─scripts                           # 脚本
   │   ├─code_extract                  # 代码抽取

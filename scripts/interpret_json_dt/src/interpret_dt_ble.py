@@ -80,7 +80,6 @@ def _dt_get_enum_list_from_mapping(mapping):
 
 
 def _dt_write_public_header(write_fd):
-    _dt_write_macro_to_file(write_fd, 'SDK_VER', '"' + dt_config['SDK']['VERSION'] + '"')
     _dt_write_enum_to_file(write_fd, '// data type in template, corresponding to type in json file',
                            dt_config['DATA_TYPE'].name,
                            _dt_get_enum_list_from_conf(dt_config['DATA_TYPE']))
@@ -459,17 +458,17 @@ def _dt_trans_event_json_to_c_file(write_fd, _evnet_data):
                                    event.get(dt_config['JSON']['ID']).upper() + '_PARAM_ID_BUTT'))
         for param in event.get('params'):
             _dt_write_newline_to_file(write_fd, '\t{%-32s %-20s},' % (
-            'ble_event_get_' + event.get(dt_config['JSON']['ID']).lower() + '_' + param.get(
-                dt_config['JSON']['ID']).lower() + ', ',
-            _dt_get_type_by_str(param.get(dt_config['JSON']['DEFINE']).get(dt_config['JSON']['TYPE']))))
+                'ble_event_get_' + event.get(dt_config['JSON']['ID']).lower() + '_' + param.get(
+                    dt_config['JSON']['ID']).lower() + ', ',
+                _dt_get_type_by_str(param.get(dt_config['JSON']['DEFINE']).get(dt_config['JSON']['TYPE']))))
         _dt_write_newline_to_file(write_fd, '};\n')
 
     # define event array
     _dt_write_newline_to_file(write_fd, 'static ble_event_t sg_ble_event_array[BLE_QIOT_EVENT_ID_BUTT] = {')
     for event in _evnet_data:
         _dt_write_newline_to_file(write_fd, '\t{%-32s %-32s},' % (
-        'sg_ble_event_' + event.get(dt_config['JSON']['ID']).lower() + '_array,',
-        'sizeof(sg_ble_event_' + event.get(dt_config['JSON']['ID']).lower() + '_array) / sizeof(ble_event_param)'))
+            'sg_ble_event_' + event.get(dt_config['JSON']['ID']).lower() + '_array,',
+            'sizeof(sg_ble_event_' + event.get(dt_config['JSON']['ID']).lower() + '_array) / sizeof(ble_event_param)'))
     _dt_write_newline_to_file(write_fd, '};\n')
 
     dt_event_file = open(os.path.join(script_path, 'dt_fixed_content', 'dt_ble_event'), 'r', encoding='UTF-8')

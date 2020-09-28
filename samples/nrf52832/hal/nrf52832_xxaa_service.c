@@ -41,45 +41,50 @@
 #include "ble_qiot_import.h"
 
 BLE_PRIV_DEF(priv_cfg);
+NRF_BLE_GATT_DEF(m_gatt); /**< GATT module instance. */
+
+#define ATTRIBUTE_VALUE_MAX_LEN 256
 
 ble_priv_cfg_s *ble_get_priv_cfg(void)
 {
     return &priv_cfg;
 }
 
-// on_write event
-static void on_write(ble_priv_cfg_s *p_cfg, ble_evt_t const * p_ble_evt)
+nrf_ble_gatt_t *ble_get_gatt_instance(void)
 {
-    ble_gatts_evt_write_t const * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
+    return &m_gatt;
+}
+
+// on_write event
+static void on_write(ble_priv_cfg_s *p_cfg, ble_evt_t const *p_ble_evt)
+{
+    ble_gatts_evt_write_t const *p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
 
     // print raw data for debug
     NRF_LOG_INFO("dump write data, len %d", p_evt_write->len);
     NRF_LOG_RAW_HEXDUMP_INFO(p_evt_write->data, p_evt_write->len);
 
-    if (   (p_evt_write->handle == p_cfg->device_info_char_handle.value_handle)
-        && (p_cfg->iot_device_info_write_handler != NULL))
-    {
+    if ((p_evt_write->handle == p_cfg->device_info_char_handle.value_handle) &&
+        (p_cfg->iot_device_info_write_handler != NULL)) {
         p_cfg->iot_device_info_write_handler(p_evt_write->data, p_evt_write->len);
-    }
-    else if ((p_evt_write->handle == p_cfg->data_char_handle.value_handle)
-        && (p_cfg->iot_data_write_handler != NULL))
-    {
+    } else if ((p_evt_write->handle == p_cfg->data_char_handle.value_handle) &&
+               (p_cfg->iot_data_write_handler != NULL)) {
         p_cfg->iot_data_write_handler(p_evt_write->data, p_evt_write->len);
     }
 }
 
-void iot_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
+void iot_on_ble_evt(ble_evt_t const *p_ble_evt, void *p_context)
 {
-    ret_code_t err_code;
+    ret_code_t      err_code;
     ble_priv_cfg_s *p_cfg = (ble_priv_cfg_s *)p_context;
 
-	NRF_LOG_INFO("evt_id %d", p_ble_evt->header.evt_id);
-    switch (p_ble_evt->header.evt_id)
-    {
+    NRF_LOG_INFO("evt_id %d", p_ble_evt->header.evt_id);
+    switch (p_ble_evt->header.evt_id) {
         case BLE_GAP_EVT_CONNECTED:
             // on_connect(p_hrs, p_ble_evt);
             NRF_LOG_INFO("Connected");
             p_cfg->conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
+            ble_gap_connect_cb();
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
@@ -87,7 +92,7 @@ void iot_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("Disconnected");
             p_cfg->conn_handle = BLE_CONN_HANDLE_INVALID;
             ble_gap_disconnect_cb();
-			
+
             break;
 
         case BLE_GATTS_EVT_WRITE:
@@ -105,11 +110,9 @@ void iot_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("indication response %d", p_ble_evt->evt.gatts_evt.params.hvn_tx_complete.count);
             break;
 #if defined(S132)
-        case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
-        {
+        case BLE_GAP_EVT_PHY_UPDATE_REQUEST: {
             NRF_LOG_DEBUG("PHY update request.");
-            ble_gap_phys_t const phys =
-            {
+            ble_gap_phys_t const phys = {
                 .rx_phys = BLE_GAP_PHY_AUTO,
                 .tx_phys = BLE_GAP_PHY_AUTO,
             };
@@ -129,8 +132,8 @@ void ble_services_add(const qiot_service_init_s *p_service)
 {
     ret_code_t err_code;
 
-    ble_uuid_t          service_uuid;
-    ble_uuid128_t       ble_uuid128;
+    ble_uuid_t    service_uuid;
+    ble_uuid128_t ble_uuid128;
 
     ble_gatts_char_md_t char_md;
     ble_gatts_attr_t    attr_char_value;
@@ -138,7 +141,7 @@ void ble_services_add(const qiot_service_init_s *p_service)
     ble_gatts_attr_md_t attr_md;
     ble_gatts_attr_md_t user_descr_attr_md;
     ble_gatts_attr_md_t cccd_md;
-    
+
     ble_priv_cfg_s *p_cfg;
 
     p_cfg = ble_get_priv_cfg();
@@ -146,8 +149,7 @@ void ble_services_add(const qiot_service_init_s *p_service)
     /*************************************************************************/
     // if it's necessary to save those configuration in private configuration
     p_cfg->iot_device_info_write_handler = p_service->device_info.on_write;
-    p_cfg->iot_data_write_handler = p_service->data.on_write;
-
+    p_cfg->iot_data_write_handler        = p_service->data.on_write;
 
     /*************************************************************************/
     // add service
@@ -161,12 +163,10 @@ void ble_services_add(const qiot_service_init_s *p_service)
     service_uuid.uuid = IOT_BLE_UUID_SERVICE;
 
     err_code = sd_ble_gatts_service_add(BLE_GATTS_SRVC_TYPE_PRIMARY, &service_uuid, &p_cfg->service_handle);
-    if(err_code != NRF_SUCCESS)
-    {
+    if (err_code != NRF_SUCCESS) {
         NRF_LOG_ERROR("err at file %s, line %d, err_code %d \n", __FILE__, __LINE__, err_code);
         return;
     }
-
 
     /*************************************************************************/
     // set device info characteristic, uuid 0xFEE1
@@ -177,7 +177,6 @@ void ble_services_add(const qiot_service_init_s *p_service)
     memset(&user_descr_attr_md, 0, sizeof(user_descr_attr_md));
     memset(&cccd_md, 0, sizeof(cccd_md));
 
-
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.read_perm);
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&cccd_md.write_perm);
     // BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&cccd_md.write_perm);
@@ -185,13 +184,13 @@ void ble_services_add(const qiot_service_init_s *p_service)
     cccd_md.wr_auth = 0;
     cccd_md.vlen    = 1;
     cccd_md.vloc    = BLE_GATTS_VLOC_STACK;
-    
-    char_md.char_props.broadcast      = ((p_service->device_info.gatt_char_props & GATT_CHAR_BROADCAST     ) ? 1 : 0);
-    char_md.char_props.read           = ((p_service->device_info.gatt_char_props & GATT_CHAR_READ          ) ? 1 : 0);
-    char_md.char_props.write_wo_resp  = ((p_service->device_info.gatt_char_props & GATT_CHAR_WRITE_WO_RESP ) ? 1 : 0);
-    char_md.char_props.write          = ((p_service->device_info.gatt_char_props & GATT_CHAR_WRITE         ) ? 1 : 0);
-    char_md.char_props.notify         = ((p_service->device_info.gatt_char_props & GATT_CHAR_NOTIFY        ) ? 1 : 0);
-    char_md.char_props.indicate       = ((p_service->device_info.gatt_char_props & GATT_CHAR_INDICATE      ) ? 1 : 0);
+
+    char_md.char_props.broadcast      = ((p_service->device_info.gatt_char_props & GATT_CHAR_BROADCAST) ? 1 : 0);
+    char_md.char_props.read           = ((p_service->device_info.gatt_char_props & GATT_CHAR_READ) ? 1 : 0);
+    char_md.char_props.write_wo_resp  = ((p_service->device_info.gatt_char_props & GATT_CHAR_WRITE_WO_RESP) ? 1 : 0);
+    char_md.char_props.write          = ((p_service->device_info.gatt_char_props & GATT_CHAR_WRITE) ? 1 : 0);
+    char_md.char_props.notify         = ((p_service->device_info.gatt_char_props & GATT_CHAR_NOTIFY) ? 1 : 0);
+    char_md.char_props.indicate       = ((p_service->device_info.gatt_char_props & GATT_CHAR_INDICATE) ? 1 : 0);
     char_md.char_props.auth_signed_wr = ((p_service->device_info.gatt_char_props & GATT_CHAR_AUTH_SIGNED_WR) ? 1 : 0);
 
     char_md.p_char_pf      = NULL;
@@ -202,7 +201,6 @@ void ble_services_add(const qiot_service_init_s *p_service)
     char_uuid.type = p_cfg->uuid_type;
     char_uuid.uuid = p_service->device_info.uuid16;
 
-
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.read_perm);
     BLE_GAP_CONN_SEC_MODE_SET_OPEN(&attr_md.write_perm);
     attr_md.vloc    = BLE_GATTS_VLOC_STACK;
@@ -210,17 +208,16 @@ void ble_services_add(const qiot_service_init_s *p_service)
     attr_md.wr_auth = 0;
     attr_md.vlen    = 1;
 
-
     attr_char_value.p_uuid    = &char_uuid;
     attr_char_value.p_attr_md = &attr_md;
     attr_char_value.init_len  = sizeof(uint8_t);
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t) * p_service->gatt_max_mtu;
+    attr_char_value.max_len   = sizeof(uint8_t) * ATTRIBUTE_VALUE_MAX_LEN;
     attr_char_value.p_value   = NULL;
 
-    err_code = sd_ble_gatts_characteristic_add(p_cfg->service_handle, &char_md, &attr_char_value, &p_cfg->device_info_char_handle);
-    if(err_code != NRF_SUCCESS)
-    {
+    err_code = sd_ble_gatts_characteristic_add(p_cfg->service_handle, &char_md, &attr_char_value,
+                                               &p_cfg->device_info_char_handle);
+    if (err_code != NRF_SUCCESS) {
         NRF_LOG_ERROR("err at file %s, line %d, err_code %d \n", __FILE__, __LINE__, err_code);
         return;
     }
@@ -241,13 +238,13 @@ void ble_services_add(const qiot_service_init_s *p_service)
     cccd_md.wr_auth = 0;
     cccd_md.vlen    = 1;
     cccd_md.vloc    = BLE_GATTS_VLOC_STACK;
-    
-    char_md.char_props.broadcast      = ((p_service->data.gatt_char_props & GATT_CHAR_BROADCAST     ) ? 1 : 0);
-    char_md.char_props.read           = ((p_service->data.gatt_char_props & GATT_CHAR_READ          ) ? 1 : 0);
-    char_md.char_props.write_wo_resp  = ((p_service->data.gatt_char_props & GATT_CHAR_WRITE_WO_RESP ) ? 1 : 0);
-    char_md.char_props.write          = ((p_service->data.gatt_char_props & GATT_CHAR_WRITE         ) ? 1 : 0);
-    char_md.char_props.notify         = ((p_service->data.gatt_char_props & GATT_CHAR_NOTIFY        ) ? 1 : 0);
-    char_md.char_props.indicate       = ((p_service->data.gatt_char_props & GATT_CHAR_INDICATE      ) ? 1 : 0);
+
+    char_md.char_props.broadcast      = ((p_service->data.gatt_char_props & GATT_CHAR_BROADCAST) ? 1 : 0);
+    char_md.char_props.read           = ((p_service->data.gatt_char_props & GATT_CHAR_READ) ? 1 : 0);
+    char_md.char_props.write_wo_resp  = ((p_service->data.gatt_char_props & GATT_CHAR_WRITE_WO_RESP) ? 1 : 0);
+    char_md.char_props.write          = ((p_service->data.gatt_char_props & GATT_CHAR_WRITE) ? 1 : 0);
+    char_md.char_props.notify         = ((p_service->data.gatt_char_props & GATT_CHAR_NOTIFY) ? 1 : 0);
+    char_md.char_props.indicate       = ((p_service->data.gatt_char_props & GATT_CHAR_INDICATE) ? 1 : 0);
     char_md.char_props.auth_signed_wr = ((p_service->data.gatt_char_props & GATT_CHAR_AUTH_SIGNED_WR) ? 1 : 0);
 
     char_md.p_char_pf      = NULL;
@@ -269,12 +266,12 @@ void ble_services_add(const qiot_service_init_s *p_service)
     attr_char_value.p_attr_md = &attr_md;
     attr_char_value.init_len  = sizeof(uint8_t);
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t) * p_service->gatt_max_mtu;
+    attr_char_value.max_len   = sizeof(uint8_t) * ATTRIBUTE_VALUE_MAX_LEN;
     attr_char_value.p_value   = NULL;
 
-    err_code = sd_ble_gatts_characteristic_add(p_cfg->service_handle, &char_md, &attr_char_value, &p_cfg->data_char_handle);
-    if(err_code != NRF_SUCCESS)
-    {
+    err_code =
+        sd_ble_gatts_characteristic_add(p_cfg->service_handle, &char_md, &attr_char_value, &p_cfg->data_char_handle);
+    if (err_code != NRF_SUCCESS) {
         NRF_LOG_ERROR("err at file %s, line %d, err_code %d \n", __FILE__, __LINE__, err_code);
         return;
     }
@@ -295,13 +292,13 @@ void ble_services_add(const qiot_service_init_s *p_service)
     cccd_md.wr_auth = 0;
     cccd_md.vlen    = 1;
     cccd_md.vloc    = BLE_GATTS_VLOC_STACK;
-    
-    char_md.char_props.broadcast      = ((p_service->event.gatt_char_props & GATT_CHAR_BROADCAST     ) ? 1 : 0);
-    char_md.char_props.read           = ((p_service->event.gatt_char_props & GATT_CHAR_READ          ) ? 1 : 0);
-    char_md.char_props.write_wo_resp  = ((p_service->event.gatt_char_props & GATT_CHAR_WRITE_WO_RESP ) ? 1 : 0);
-    char_md.char_props.write          = ((p_service->event.gatt_char_props & GATT_CHAR_WRITE         ) ? 1 : 0);
-    char_md.char_props.notify         = ((p_service->event.gatt_char_props & GATT_CHAR_NOTIFY        ) ? 1 : 0);
-    char_md.char_props.indicate       = ((p_service->event.gatt_char_props & GATT_CHAR_INDICATE      ) ? 1 : 0);
+
+    char_md.char_props.broadcast      = ((p_service->event.gatt_char_props & GATT_CHAR_BROADCAST) ? 1 : 0);
+    char_md.char_props.read           = ((p_service->event.gatt_char_props & GATT_CHAR_READ) ? 1 : 0);
+    char_md.char_props.write_wo_resp  = ((p_service->event.gatt_char_props & GATT_CHAR_WRITE_WO_RESP) ? 1 : 0);
+    char_md.char_props.write          = ((p_service->event.gatt_char_props & GATT_CHAR_WRITE) ? 1 : 0);
+    char_md.char_props.notify         = ((p_service->event.gatt_char_props & GATT_CHAR_NOTIFY) ? 1 : 0);
+    char_md.char_props.indicate       = ((p_service->event.gatt_char_props & GATT_CHAR_INDICATE) ? 1 : 0);
     char_md.char_props.auth_signed_wr = ((p_service->event.gatt_char_props & GATT_CHAR_AUTH_SIGNED_WR) ? 1 : 0);
 
     char_md.p_char_pf      = NULL;
@@ -324,14 +321,13 @@ void ble_services_add(const qiot_service_init_s *p_service)
     // attr_char_value.init_len  = sizeof(uint8_t);
     attr_char_value.init_len  = sizeof(uint8_t) * 10;
     attr_char_value.init_offs = 0;
-    attr_char_value.max_len   = sizeof(uint8_t) * p_service->gatt_max_mtu;
+    attr_char_value.max_len   = sizeof(uint8_t) * ATTRIBUTE_VALUE_MAX_LEN;
     attr_char_value.p_value   = "hello";
 
-    err_code = sd_ble_gatts_characteristic_add(p_cfg->service_handle, &char_md, &attr_char_value, &p_cfg->event_char_handle);
-    if(err_code != NRF_SUCCESS)
-    {
+    err_code =
+        sd_ble_gatts_characteristic_add(p_cfg->service_handle, &char_md, &attr_char_value, &p_cfg->event_char_handle);
+    if (err_code != NRF_SUCCESS) {
         NRF_LOG_ERROR("err at file %s, line %d, err_code %d \n", __FILE__, __LINE__, err_code);
         return;
     }
 }
-

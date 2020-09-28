@@ -23,22 +23,20 @@ extern "C" {
 #include "ble_srv_common.h"
 #include "ble_qiot_export.h"
 #include "nrf_sdh_ble.h"
+#include "nrf_ble_gatt.h"
 
-
-#define BLE_PRIV_DEF(_name) \
-static ble_priv_cfg_s _name; \
-NRF_SDH_BLE_OBSERVER(_name ## _obs, \
-                     BLE_LBS_BLE_OBSERVER_PRIO, \
-                     iot_on_ble_evt, &_name)
+#define BLE_PRIV_DEF(_name)      \
+    static ble_priv_cfg_s _name; \
+    NRF_SDH_BLE_OBSERVER(_name##_obs, BLE_LBS_BLE_OBSERVER_PRIO, iot_on_ble_evt, &_name)
 
 typedef struct _ble_priv_cfg_s ble_priv_cfg_s;
 
 typedef void (*indi_resp_cb)(uint8_t res);
 
 // save BLE service configuration, such as handle, callback function, and so on, you can edit it as your requirements
-struct _ble_priv_cfg_s{
+struct _ble_priv_cfg_s {
     uint16_t service_handle;
-    uint8_t uuid_type; // UUID type for the service.
+    uint8_t  uuid_type;  // UUID type for the service.
 
     ble_gatts_char_handles_t device_info_char_handle;
     ble_gatts_char_handles_t data_char_handle;
@@ -48,13 +46,14 @@ struct _ble_priv_cfg_s{
     ble_on_write_cb iot_device_info_write_handler;
     ble_on_write_cb iot_data_write_handler;
 
-    uint16_t conn_handle; /**< Handle of the current connection (as provided by the BLE stack, is BLE_CONN_HANDLE_INVALID if not in a connection). */
+    uint16_t conn_handle; /**< Handle of the current connection (as provided by the BLE stack, is
+                             BLE_CONN_HANDLE_INVALID if not in a connection). */
 };
 
 ble_priv_cfg_s *ble_get_priv_cfg(void);
-void iot_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
-void ble_services_add(const qiot_service_init_s *p_service);
-
+nrf_ble_gatt_t *ble_get_gatt_instance(void);
+void            iot_on_ble_evt(ble_evt_t const *p_ble_evt, void *p_context);
+void            ble_services_add(const qiot_service_init_s *p_service);
 
 #ifdef __cplusplus
 }

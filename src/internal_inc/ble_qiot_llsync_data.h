@@ -18,6 +18,12 @@ extern "C" {
 #include <stdint.h>
 #include <ble_qiot_export.h>
 
+#define BLE_QIOT_CONTROL_DATA_TYPE          (0x00)
+#define BLE_QIOT_GET_STATUS_REPLY_DATA_TYPE (0x22)
+
+#define BLE_QIOT_GET_STATUS_REPLY_HEADER_LEN (4)
+#define BLE_QIOT_DATA_FIXED_HEADER_LEN       (3)
+
 // handle property request
 ble_qiot_ret_status_t ble_lldata_property_request_handle(const char *in_buf, int buf_len);
 // handle property reply

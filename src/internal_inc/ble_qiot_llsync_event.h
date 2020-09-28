@@ -32,6 +32,12 @@ enum {
 #define BLE_QIOT_EVENT_FIXED_HEADER_LEN (3)
 #define BLE_QIOT_EVENT_MAX_SIZE         (2048)
 
+// the bit 15 - 14 is slice flag, bit 13 - 0 is tlv length
+#define BLE_QIOT_IS_SLICE_PACKAGE(_C) ((_C)&0XC0)
+#define BLE_QIOT_IS_SLICE_HEADER(_C)  (((_C)&0XC0) == 0X40)
+#define BLE_QIOT_IS_SLICE_BODY(_C)    (((_C)&0XC0) == 0X80)
+#define BLE_QIOT_IS_SLICE_TAIL(_C)    (((_C)&0XC0) == 0XC0)
+
 ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t header_len, const char *buf,
                                        uint16_t buf_len);
 

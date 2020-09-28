@@ -35,6 +35,19 @@ ble_qiot_ret_status_t ble_event_report_property(void)
     return ble_user_property_get_report_data();
 }
 
+ble_qiot_ret_status_t ble_event_report_device_info(void)
+{
+    char     device_info[3] = {0};
+    uint16_t mtu_size       = 0;
+
+    mtu_size       = ble_get_user_data_mtu_size();
+    mtu_size       = HTONS(mtu_size);
+    device_info[0] = BLE_QIOT_LLSYNC_PROTOCOL_VERSION;
+    memcpy(&device_info[1], &mtu_size, sizeof(mtu_size));
+
+    return ble_event_notify(BLE_QIOT_EVENT_UP_REPORT_MTU, NULL, 0, (const char *)device_info, sizeof(device_info));
+}
+
 ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t header_len, const char *buf,
                                        uint16_t buf_len)
 {
@@ -47,7 +60,7 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
     uint16_t send_buf_index                    = 0;
     uint16_t tmp_len                           = 0;
 
-    if (!ble_is_connected() && type != BLE_QIOT_EVENT_UP_BIND_SIGN_RET && type != BLE_QIOT_EVENT_UP_CONN_SIGN_RET &&
+    if (!llsync_is_connected() && type != BLE_QIOT_EVENT_UP_BIND_SIGN_RET && type != BLE_QIOT_EVENT_UP_CONN_SIGN_RET &&
         type != BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET) {
         ble_qiot_log_e("upload msg negate, device not connected");
         return BLE_QIOT_RS_ERR;
@@ -102,7 +115,7 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
             send_len = send_buf_index;
         }
 
-        ble_qiot_log_hex("post data", send_buf, send_len);
+        ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "post data", (char *)send_buf, send_len);
         if (0 != ble_send_notify(send_buf, send_len)) {
             ble_qiot_log_e("event post failed, type %d", type);
             return BLE_QIOT_RS_ERR;

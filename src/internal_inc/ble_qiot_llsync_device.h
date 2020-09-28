@@ -20,6 +20,9 @@ extern "C" {
 #include "ble_qiot_common.h"
 #include "ble_qiot_export.h"
 #include "ble_qiot_hmac.h"
+#include "ble_qiot_llsync_event.h"
+
+#define BLE_QIOT_LLSYNC_PROTOCOL_VERSION (2)  // llsync protocol version
 
 #define BLE_LOCAL_PSK_LEN           4
 #define BLE_BIND_IDENTIFY_STR_LEN   8
@@ -43,11 +46,20 @@ typedef enum {
 } e_dev_info_msg_type;
 
 typedef enum {
-    E_BIND_IDLE = 0,   // no bind
-    E_BIND_WAIT,       // wait bind, return idle state if no bind in the period
-    E_BIND_SUCC,       // bound
-    E_BIND_CONNECTED,  // connected
-} e_ble_bind_state;
+    E_LLSYNC_BIND_IDLE = 0,  // no bind
+    E_LLSYNC_BIND_WAIT,      // wait bind, return idle state if no bind in the period
+    E_LLSYNC_BIND_SUCC,      // bound
+} e_llsync_bind_state;
+
+typedef enum {
+    E_LLSYNC_DISCONNECTED = 0,
+    E_LLSYNC_CONNECTED,
+} e_llsync_connection_state;
+
+typedef enum {
+    E_BLE_DISCONNECTED = 0,
+    E_BLE_CONNECTED,
+} e_ble_connection_state;
 
 typedef struct ble_device_info_t_ {
     char product_id[BLE_QIOT_PRODUCT_ID_LEN];
@@ -79,16 +91,38 @@ typedef struct ble_unbind_data_t_ {
     char sign_info[SHA1_DIGEST_SIZE];
 } ble_unbind_data;
 
+typedef struct {
+    bool     have_data;  // start received package
+    uint8_t  type;       // event type
+    uint16_t buf_len;    // the length of data
+    char     buf[BLE_QIOT_EVENT_MAX_SIZE];
+} ble_event_slice_t;
+
 // read sdk data from flash
 ble_qiot_ret_status_t ble_init_flash_data(void);
 
-// set bind state
-void ble_bind_state_set(e_ble_bind_state new_state);
+// set llsync bind state
+void llsync_bind_state_set(e_llsync_bind_state new_state);
 
-// get bind state
-e_ble_bind_state ble_bind_state_get(void);
+// get llsync bind state
+e_llsync_bind_state llsync_bind_state_get(void);
 
-// get connect state
+// set llsync connection state
+void llsync_connection_state_set(e_llsync_connection_state new_state);
+
+// get llsync connection state
+e_llsync_connection_state llsync_connection_state_get(void);
+
+// set ble connection state
+void ble_connection_state_set(e_ble_connection_state new_state);
+
+// get ble connection state
+e_ble_connection_state ble_connection_state_get(void);
+
+// get llsync connection state
+bool llsync_is_connected(void);
+
+// get ble connection state
 bool ble_is_connected(void);
 
 // get broadcast data

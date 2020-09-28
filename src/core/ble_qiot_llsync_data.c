@@ -158,7 +158,7 @@ ble_qiot_ret_status_t ble_user_property_get_report_data(void)
             data_len += property_len;
         }
     }
-    // ble_qiot_log_hex("user data", data_buf, data_len);
+    // ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "user data", data_buf, data_len);
 
     return ble_event_notify(BLE_QIOT_EVENT_UP_PROPERTY_REPORT, NULL, 0, (const char *)data_buf, data_len);
 }
@@ -307,7 +307,7 @@ ble_qiot_ret_status_t ble_lldata_action_handle(uint8_t action_id, const char *in
             }
         }
     }
-    // ble_qiot_log_hex("user data", data_buf, data_len);
+    // ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "user data", data_buf, data_len);
 
     header_buf[0] = BLE_QIOT_REPLY_SUCCESS;
     header_buf[1] = action_id;

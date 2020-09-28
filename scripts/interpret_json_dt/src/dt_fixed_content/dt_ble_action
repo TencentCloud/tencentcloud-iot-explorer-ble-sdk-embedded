@@ -71,7 +71,7 @@ int ble_action_user_handle_output_param(uint8_t action_id, uint8_t output_id, ch
         ble_qiot_log_e("invalid action id %d", action_id);
         return -1;
     }
-    if (NULL != sg_ble_action_array[action_id].output_cb){
+    if (NULL == sg_ble_action_array[action_id].output_cb){
         ble_qiot_log_e("invalid callback, action id %d", action_id);
         return 0;
     }

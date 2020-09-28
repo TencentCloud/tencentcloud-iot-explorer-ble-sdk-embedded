@@ -1,8 +1,8 @@
 {
   "version": "1.0",
   "profile": {
-    "ProductId": "0BCDALFUO8",
-    "CategoryId": "141"
+    "ProductId": "DHZX03IQAZ",
+    "CategoryId": "3"
   },
   "properties": [
     {
@@ -52,12 +52,12 @@
       "name": "灯位置名称",
       "desc": "灯位置名称：书房、客厅等",
       "mode": "rw",
-      "required": false,
       "define": {
         "type": "string",
         "min": "0",
-        "max": "64"
-      }
+        "max": "640"
+      },
+      "required": false
     }
   ],
   "events": [
@@ -171,11 +171,9 @@
           "id": "result",
           "name": "result",
           "define": {
-            "type": "bool",
-            "mapping": {
-              "0": "Success",
-              "1": "Failure"
-            }
+            "type": "string",
+            "min": "0",
+            "max": "320"
           }
         }
       ],

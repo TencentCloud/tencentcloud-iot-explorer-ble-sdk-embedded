@@ -55,59 +55,51 @@ extern "C" {
 
 #include "flash_storage.h"
 
-
 // divece info which defined in explorer platform
 #define PRODUCT_ID  "LR5NRSX9F5"
 #define DEVICE_NAME "ble01"
 #define SECRET_KEY  "uG2TRl0hnCNsuLgls/65Bg=="
 
-static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                   /**< Advertising handle used to identify an advertising set. */
-static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
-static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         /**< Buffer for storing an encoded scan data. */
+static uint8_t m_adv_handle =
+    BLE_GAP_ADV_SET_HANDLE_NOT_SET; /**< Advertising handle used to identify an advertising set. */
+static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX]; /**< Buffer for storing an encoded advertising set. */
+static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX]; /**< Buffer for storing an encoded scan data. */
 
 /**@brief Struct that contains pointers to the encoded advertising data. */
-static ble_gap_adv_data_t m_adv_data =
-{
-    .adv_data =
-    {
-        .p_data = m_enc_advdata,
-        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
-    },
-    .scan_rsp_data =
-    {
-        .p_data = m_enc_scan_response_data,
-        .len    = BLE_GAP_ADV_SET_DATA_SIZE_MAX
+static ble_gap_adv_data_t m_adv_data = {
+    .adv_data      = {.p_data = m_enc_advdata, .len = BLE_GAP_ADV_SET_DATA_SIZE_MAX},
+    .scan_rsp_data = {.p_data = m_enc_scan_response_data, .len = BLE_GAP_ADV_SET_DATA_SIZE_MAX
 
-    }
-};
+    }};
 
 int ble_get_product_id(char *product_id)
 {
     memcpy(product_id, PRODUCT_ID, strlen(PRODUCT_ID));
-	
+
     return 0;
 }
+
 int ble_get_device_name(char *device_name)
 {
     memcpy(device_name, DEVICE_NAME, strlen(DEVICE_NAME));
-	
+
     return strlen(DEVICE_NAME);
 }
+
 int ble_get_psk(char *psk)
 {
     memcpy(psk, SECRET_KEY, strlen(SECRET_KEY));
-	
+
     return 0;
 }
 
 int ble_get_mac(char *mac)
 {
-    uint32_t err_code;
+    uint32_t       err_code;
     ble_gap_addr_t mac_info;
-	
+
     err_code = sd_ble_gap_addr_get(&mac_info);
-    if(NRF_SUCCESS != err_code)
-    {
+    if (NRF_SUCCESS != err_code) {
         NRF_LOG_ERROR("Get MAC error, ret %d", err_code);
         return err_code;
     }
@@ -131,17 +123,19 @@ int ble_read_flash(uint32_t flash_addr, char *read_buf, uint16_t read_len)
     return fstorage_read(flash_addr, read_len, read_buf);
 }
 
-ble_qiot_ret_status_t ble_advertising_start(adv_info *adv)
+ble_qiot_ret_status_t ble_advertising_start(adv_info_s *adv)
 {
     ret_code_t err_code;
 
     ble_gap_adv_params_t adv_params;
-    ble_advdata_t advdata;
+    ble_advdata_t        advdata;
 
     // set Scan Response data, here set service uuid
     ble_advdata_t srdata;
     memset(&srdata, 0, sizeof(srdata));
-    ble_uuid_t adv_uuids[] = {{IOT_BLE_UUID_SERVICE, BLE_UUID_TYPE_BLE}};
+    ble_uuid_t adv_uuids[1];
+    adv_uuids[0].uuid              = adv->uuid_info.uuids[0];
+    adv_uuids[0].type              = BLE_UUID_TYPE_BLE;
     srdata.uuids_complete.uuid_cnt = sizeof(adv_uuids) / sizeof(adv_uuids[0]);
     srdata.uuids_complete.p_uuids  = adv_uuids;
     err_code = ble_advdata_encode(&srdata, m_adv_data.scan_rsp_data.p_data, &m_adv_data.scan_rsp_data.len);
@@ -149,20 +143,19 @@ ble_qiot_ret_status_t ble_advertising_start(adv_info *adv)
 
     // Build and set advertising data.
     memset(&advdata, 0, sizeof(advdata));
-    advdata.name_type          = BLE_ADVDATA_FULL_NAME;
-    advdata.flags              = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
+    advdata.name_type = BLE_ADVDATA_FULL_NAME;
+    advdata.flags     = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
 
     // set Advertising Data
     ble_advdata_manuf_data_t manf_data;
     memset(&manf_data, 0, sizeof(manf_data));
-    manf_data.company_identifier = adv->company_identifier;
-    manf_data.data.size = adv->adv_data_len;
-    manf_data.data.p_data = adv->adv_data;
+    manf_data.company_identifier  = adv->manufacturer_info.company_identifier;
+    manf_data.data.size           = adv->manufacturer_info.adv_data_len;
+    manf_data.data.p_data         = adv->manufacturer_info.adv_data;
     advdata.p_manuf_specific_data = &manf_data;
 
     err_code = ble_advdata_encode(&advdata, m_adv_data.adv_data.p_data, &m_adv_data.adv_data.len);
     APP_ERROR_CHECK(err_code);
-
 
     // Set advertising parameters.
     memset(&adv_params, 0, sizeof(adv_params));
@@ -175,15 +168,13 @@ ble_qiot_ret_status_t ble_advertising_start(adv_info *adv)
     adv_params.interval        = APP_ADV_INTERVAL;
 
     err_code = sd_ble_gap_adv_set_configure(&m_adv_handle, &m_adv_data, &adv_params);
-    if(NRF_SUCCESS != err_code)
-    {
+    if (NRF_SUCCESS != err_code) {
         NRF_LOG_ERROR("sd_ble_gap_adv_set_configure error, ret %d", err_code);
         return BLE_QIOT_RS_ERR;
     }
 
     err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
-    if(NRF_SUCCESS != err_code)
-    {
+    if (NRF_SUCCESS != err_code) {
         NRF_LOG_ERROR("sd_ble_gap_adv_start error, ret %d", err_code);
         return BLE_QIOT_RS_ERR;
     }
@@ -196,8 +187,7 @@ ble_qiot_ret_status_t ble_advertising_stop(void)
     ret_code_t err_code;
 
     err_code = sd_ble_gap_adv_stop(m_adv_handle);
-    if(NRF_SUCCESS != err_code)
-    {
+    if (NRF_SUCCESS != err_code) {
         NRF_LOG_ERROR("sd_ble_gap_adv_stop error, ret %d", err_code);
         return BLE_QIOT_RS_ERR;
     }
@@ -207,60 +197,60 @@ ble_qiot_ret_status_t ble_advertising_stop(void)
 
 // define a static timer used in bind for example, a good way is used malloc
 APP_TIMER_DEF(ble_bind_timer);
+
 ble_timer_t ble_timer_create(uint8_t type, ble_timer_cb timeout_handle)
 {
-	app_timer_create((app_timer_id_t const *)&ble_bind_timer, 
-						type == BLE_TIMER_ONE_SHOT_TYPE ? APP_TIMER_MODE_SINGLE_SHOT : APP_TIMER_MODE_REPEATED, 
-						(app_timer_timeout_handler_t)timeout_handle);
-	NRF_LOG_INFO("create timer id %p", (ble_timer_t)ble_bind_timer);
-	
-	return (ble_timer_t)ble_bind_timer;
+    app_timer_create((app_timer_id_t const *)&ble_bind_timer,
+                     type == BLE_TIMER_ONE_SHOT_TYPE ? APP_TIMER_MODE_SINGLE_SHOT : APP_TIMER_MODE_REPEATED,
+                     (app_timer_timeout_handler_t)timeout_handle);
+    NRF_LOG_INFO("create timer id %p", (ble_timer_t)ble_bind_timer);
+
+    return (ble_timer_t)ble_bind_timer;
 }
 
 ble_qiot_ret_status_t ble_timer_start(ble_timer_t timer_id, uint32_t period)
 {
-	ret_code_t ret = 0;
-	
-	ret = app_timer_start((app_timer_id_t)timer_id, APP_TIMER_TICKS(period), NULL);
-	NRF_LOG_INFO("start timer id %p, tick %d, ret %d", timer_id, APP_TIMER_TICKS(period), ret);
-	
-	return 0 == ret ? BLE_QIOT_RS_OK : BLE_QIOT_RS_ERR;
+    ret_code_t ret = 0;
+
+    ret = app_timer_start((app_timer_id_t)timer_id, APP_TIMER_TICKS(period), NULL);
+    NRF_LOG_INFO("start timer id %p, tick %d, ret %d", timer_id, APP_TIMER_TICKS(period), ret);
+
+    return 0 == ret ? BLE_QIOT_RS_OK : BLE_QIOT_RS_ERR;
 }
 
 ble_qiot_ret_status_t ble_timer_stop(ble_timer_t timer_id)
 {
-	ret_code_t ret = 0;
-	
-	ret = app_timer_stop(timer_id);
-	NRF_LOG_INFO("stop timer id %p, ret %d", timer_id, ret);
-	
-	return 0 == ret ? BLE_QIOT_RS_OK : BLE_QIOT_RS_ERR;
+    ret_code_t ret = 0;
+
+    ret = app_timer_stop(timer_id);
+    NRF_LOG_INFO("stop timer id %p, ret %d", timer_id, ret);
+
+    return 0 == ret ? BLE_QIOT_RS_OK : BLE_QIOT_RS_ERR;
 }
 
 ble_qiot_ret_status_t ble_timer_delete(ble_timer_t timer_id)
 {
-	// do nothing
-	return BLE_QIOT_RS_OK;
+    // do nothing
+    return BLE_QIOT_RS_OK;
 }
 
 ble_qiot_ret_status_t ble_send_notify(uint8_t *buf, uint8_t len)
 {
-    ret_code_t err_code;
+    ret_code_t             err_code;
     ble_gatts_hvx_params_t params;
-    uint16_t data_len = len;
-    ble_priv_cfg_s *p_cfg;
+    uint16_t               data_len = len;
+    ble_priv_cfg_s *       p_cfg;
 
     p_cfg = ble_get_priv_cfg();
 
     memset(&params, 0, sizeof(params));
     params.type   = BLE_GATT_HVX_NOTIFICATION;
-    params.handle = p_cfg->event_char_handle.value_handle; // handle, corresponds to the same characteristic
+    params.handle = p_cfg->event_char_handle.value_handle;  // handle, corresponds to the same characteristic
     params.p_data = buf;
-    params.p_len  = &data_len; // do not large than length set in characteristic
+    params.p_len  = &data_len;  // do not large than length set in characteristic
 
     err_code = sd_ble_gatts_hvx(p_cfg->conn_handle, &params);
-    if(NRF_SUCCESS != err_code)
-    {
+    if (NRF_SUCCESS != err_code) {
         NRF_LOG_ERROR("sd_ble_gatts_hvx error, ret %d", err_code);
         return BLE_QIOT_RS_ERR;
     }
@@ -268,22 +258,24 @@ ble_qiot_ret_status_t ble_send_notify(uint8_t *buf, uint8_t len)
     return BLE_QIOT_RS_OK;
 }
 
-// should return ATT_MTU - 3, this is a mock for test
+// should return ATT_MTU - 3
 uint16_t ble_get_user_data_mtu_size(void)
 {
-    return 75;
-}
+    ble_priv_cfg_s *p_cfg;
+    nrf_ble_gatt_t *p_gatt;
 
+    p_cfg  = ble_get_priv_cfg();
+    p_gatt = ble_get_gatt_instance();
+
+    return nrf_ble_gatt_eff_mtu_get(p_gatt, p_cfg->conn_handle) - 3;
+}
 
 void property_power_switch(const char *data, uint16_t len)
 {
-    if (data[0])
-    {
+    if (data[0]) {
         bsp_board_led_on(BSP_BOARD_LED_0);
         NRF_LOG_INFO("Received LED ON!");
-    }
-    else
-    {
+    } else {
         bsp_board_led_off(BSP_BOARD_LED_0);
         NRF_LOG_INFO("Received LED OFF!");
     }

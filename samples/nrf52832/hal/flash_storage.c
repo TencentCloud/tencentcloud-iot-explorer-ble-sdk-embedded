@@ -21,10 +21,9 @@
 #include "nrf_log_default_backends.h"
 #include <stdlib.h>
 
-static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt);
+static void fstorage_evt_handler(nrf_fstorage_evt_t *p_evt);
 
-NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) =
-{
+NRF_FSTORAGE_DEF(nrf_fstorage_t fstorage) = {
     /* Set a handler for fstorage events. */
     .evt_handler = fstorage_evt_handler,
 
@@ -40,8 +39,8 @@ static void *p_write_buf = NULL;
 
 void fstorage_init(void)
 {
-    nrf_fstorage_api_t * p_fs_api;
-    ret_code_t rc;
+    nrf_fstorage_api_t *p_fs_api;
+    ret_code_t          rc;
 
 #ifdef SOFTDEVICE_PRESENT
     NRF_LOG_INFO("SoftDevice is present.");
@@ -62,9 +61,8 @@ void fstorage_init(void)
 #endif
 
     p_write_buf = NULL;
-    rc = nrf_fstorage_init(&fstorage, p_fs_api, NULL);
+    rc          = nrf_fstorage_init(&fstorage, p_fs_api, NULL);
     APP_ERROR_CHECK(rc);
-
 }
 
 /**@brief   Helper function to obtain the last address on the last page of the on-chip flash that
@@ -90,12 +88,11 @@ static uint32_t nrf5_flash_end_addr_get()
 static void power_manage(void)
 {
 #ifdef SOFTDEVICE_PRESENT
-    (void) sd_app_evt_wait();
+    (void)sd_app_evt_wait();
 #else
     __WFE();
 #endif
 }
-
 
 int fstorage_read(uint32_t addr, uint32_t read_len, void *p_data)
 {
@@ -103,8 +100,7 @@ int fstorage_read(uint32_t addr, uint32_t read_len, void *p_data)
 
     /* Read data. */
     rc = nrf_fstorage_read(&fstorage, addr, p_data, read_len);
-    if (rc != NRF_SUCCESS)
-    {
+    if (rc != NRF_SUCCESS) {
         NRF_LOG_ERROR("nrf_fstorage_read() returned: %s\n", nrf_strerror_get(rc));
         return 0;
     }
@@ -112,11 +108,9 @@ int fstorage_read(uint32_t addr, uint32_t read_len, void *p_data)
     return read_len;
 }
 
-
 static uint32_t round_up_u32(uint32_t len)
 {
-    if (len % sizeof(uint32_t))
-    {
+    if (len % sizeof(uint32_t)) {
         return (len + sizeof(uint32_t) - (len % sizeof(uint32_t)));
     }
 
@@ -128,8 +122,7 @@ int fstorage_erase(uint32_t addr)
     ret_code_t rc;
 
     rc = nrf_fstorage_erase(&fstorage, addr, BLE_QIOT_RECORD_FLASH_PAGENUM, NULL);
-    if (rc != NRF_SUCCESS)
-    {
+    if (rc != NRF_SUCCESS) {
         NRF_LOG_ERROR("nrf_fstorage_erase() returned: %s\n", nrf_strerror_get(rc));
         return rc;
     }
@@ -142,12 +135,11 @@ int fstorage_write(uint32_t addr, uint32_t write_len, void const *p_data)
     /* The following code snippet make sure that the length of the data we are writing to flash
      * is a multiple of the program unit of the flash peripheral (4 bytes).
      */
-    uint32_t len = round_up_u32(write_len);
+    uint32_t   len = round_up_u32(write_len);
     ret_code_t rc;
 
     rc = nrf_fstorage_erase(&fstorage, addr, BLE_QIOT_RECORD_FLASH_PAGENUM, NULL);
-    if (rc != NRF_SUCCESS)
-    {
+    if (rc != NRF_SUCCESS) {
         NRF_LOG_ERROR("nrf_fstorage_erase() returned: %s\n", nrf_strerror_get(rc));
     }
 
@@ -156,8 +148,7 @@ int fstorage_write(uint32_t addr, uint32_t write_len, void const *p_data)
      * the NRF_FSTORAGE_EVT_WRITE_RESULT event. This memory will be free in fstorage_evt_handler().
      */
     p_write_buf = (void *)malloc(len);
-    if(NULL == p_write_buf)
-    {
+    if (NULL == p_write_buf) {
         NRF_LOG_ERROR("fstorage_write() malloc size %d error", len);
         return 0;
     }
@@ -166,8 +157,7 @@ int fstorage_write(uint32_t addr, uint32_t write_len, void const *p_data)
     memcpy(p_write_buf, p_data, write_len);
 
     rc = nrf_fstorage_write(&fstorage, addr, p_write_buf, len, NULL);
-    if (rc != NRF_SUCCESS)
-    {
+    if (rc != NRF_SUCCESS) {
         NRF_LOG_ERROR("nrf_fstorage_write() returned: %s\n", nrf_strerror_get(rc));
         return 0;
     }
@@ -175,28 +165,22 @@ int fstorage_write(uint32_t addr, uint32_t write_len, void const *p_data)
     return write_len;
 }
 
-static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
+static void fstorage_evt_handler(nrf_fstorage_evt_t *p_evt)
 {
-    if (p_evt->result != NRF_SUCCESS)
-    {
+    if (p_evt->result != NRF_SUCCESS) {
         NRF_LOG_INFO("fstorage event received: ERROR while executing an fstorage operation.");
         return;
     }
 
-    switch (p_evt->id)
-    {
-        case NRF_FSTORAGE_EVT_WRITE_RESULT:
-        {
+    switch (p_evt->id) {
+        case NRF_FSTORAGE_EVT_WRITE_RESULT: {
             free(p_write_buf);
             p_write_buf = NULL;
-            NRF_LOG_INFO("fstorage event received: wrote %d bytes at address 0x%x.",
-                         p_evt->len, p_evt->addr);
+            NRF_LOG_INFO("fstorage event received: wrote %d bytes at address 0x%x.", p_evt->len, p_evt->addr);
         } break;
 
-        case NRF_FSTORAGE_EVT_ERASE_RESULT:
-        {
-            NRF_LOG_INFO("fstorage event received: erased %d page from address 0x%x.",
-                         p_evt->len, p_evt->addr);
+        case NRF_FSTORAGE_EVT_ERASE_RESULT: {
+            NRF_LOG_INFO("fstorage event received: erased %d page from address 0x%x.", p_evt->len, p_evt->addr);
         } break;
 
         default:
@@ -206,14 +190,13 @@ static void fstorage_evt_handler(nrf_fstorage_evt_t * p_evt)
 
 /**
  * @brief While fstorage is busy, sleep and wait for an event.
- * 
+ *
  * @param p_fstorage nrf_fstorage_t obj
  */
-void wait_for_flash_ready(nrf_fstorage_t const * p_fstorage)
+void wait_for_flash_ready(nrf_fstorage_t const *p_fstorage)
 {
     /* While fstorage is busy, sleep and wait for an event. */
-    while (nrf_fstorage_is_busy(p_fstorage))
-    {
+    while (nrf_fstorage_is_busy(p_fstorage)) {
         power_manage();
     }
 }
