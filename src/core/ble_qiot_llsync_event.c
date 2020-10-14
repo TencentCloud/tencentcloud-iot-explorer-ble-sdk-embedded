@@ -27,12 +27,22 @@ extern "C" {
 
 ble_qiot_ret_status_t ble_event_get_status(void)
 {
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
     return ble_event_notify(BLE_QIOT_EVENT_UP_GET_STATUS, NULL, 0, NULL, 0);
+#else
+    ble_qiot_log_e("llsync property not support");
+    return BLE_QIOT_RS_OK;
+#endif
 }
 
 ble_qiot_ret_status_t ble_event_report_property(void)
 {
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
     return ble_user_property_get_report_data();
+#else
+    ble_qiot_log_e("llsync property not support");
+    return BLE_QIOT_RS_OK;
+#endif
 }
 
 ble_qiot_ret_status_t ble_event_report_device_info(void)
@@ -127,6 +137,7 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
 
 ble_qiot_ret_status_t ble_event_post(uint8_t event_id)
 {
+#ifdef BLE_QIOT_INCLUDE_EVENT
     uint8_t  param_id                          = 0;
     uint8_t  param_id_size                     = 0;
     uint8_t  param_type                        = 0;
@@ -176,6 +187,10 @@ ble_qiot_ret_status_t ble_event_post(uint8_t event_id)
 
     return ble_event_notify(BLE_QIOT_EVENT_UP_EVENT_POST, header_buf, sizeof(header_buf), (const char *)data_buf,
                             data_len);
+#else
+    ble_qiot_log_e("llsync event not support");
+    return BLE_QIOT_RS_ERR;
+#endif
 }
 
 #ifdef __cplusplus

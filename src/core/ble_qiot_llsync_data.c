@@ -84,6 +84,7 @@ static int ble_lldata_parse_tlv(const char *buf, int buf_len, e_ble_tlv *tlv)
 
 static ble_qiot_ret_status_t ble_lldata_property_data_handle(bool is_request, const char *in_buf, int buf_len)
 {
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
     uint16_t              parse_len = 0;
     uint16_t              ret_len   = 0;
     e_ble_tlv             tlv;
@@ -114,8 +115,13 @@ static ble_qiot_ret_status_t ble_lldata_property_data_handle(bool is_request, co
     } else {
         return (BLE_QIOT_REPLY_SUCCESS == handle_ret) ? BLE_QIOT_RS_OK : BLE_QIOT_RS_ERR;
     }
+#else
+    ble_qiot_log_e("llsync property not support");
+    return BLE_QIOT_RS_OK;
+#endif
 }
 
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
 ble_qiot_ret_status_t ble_user_property_get_report_data(void)
 {
     uint8_t  property_id                       = 0;
@@ -162,6 +168,7 @@ ble_qiot_ret_status_t ble_user_property_get_report_data(void)
 
     return ble_event_notify(BLE_QIOT_EVENT_UP_PROPERTY_REPORT, NULL, 0, (const char *)data_buf, data_len);
 }
+#endif
 
 // default method is control
 ble_qiot_ret_status_t ble_lldata_property_request_handle(const char *in_buf, int buf_len)
@@ -171,6 +178,7 @@ ble_qiot_ret_status_t ble_lldata_property_request_handle(const char *in_buf, int
 
 static ble_qiot_ret_status_t ble_lldata_property_report_reply(const char *in_buf, int buf_len)
 {
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
     int ret_code = 0;
 
     ret_code = ble_user_property_report_reply_handle(in_buf[0]);
@@ -180,10 +188,15 @@ static ble_qiot_ret_status_t ble_lldata_property_report_reply(const char *in_buf
     }
 
     return BLE_QIOT_RS_OK;
+#else
+    ble_qiot_log_e("llsync property not support");
+    return BLE_QIOT_RS_OK;
+#endif
 }
 
 static ble_qiot_ret_status_t ble_lldata_property_get_status_reply(const char *in_buf, int buf_len)
 {
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
     uint8_t  result    = 0;
     uint16_t reply_len = 0;
 
@@ -197,6 +210,10 @@ static ble_qiot_ret_status_t ble_lldata_property_get_status_reply(const char *in
         ble_qiot_log_e("get status failed, result %d", result);
         return BLE_QIOT_RS_ERR;
     }
+#else
+    ble_qiot_log_e("llsync property not support");
+    return BLE_QIOT_RS_OK;
+#endif
 }
 
 // handle reply from remote
@@ -217,6 +234,7 @@ ble_qiot_ret_status_t ble_lldata_property_reply_handle(uint8_t type, const char 
 
 ble_qiot_ret_status_t ble_lldata_event_handle(uint8_t id, const char *in_buf, int len)
 {
+#ifdef BLE_QIOT_INCLUDE_EVENT
     int ret_code = 0;
 
     ret_code = ble_user_event_reply_handle(id, in_buf[0]);
@@ -224,12 +242,15 @@ ble_qiot_ret_status_t ble_lldata_event_handle(uint8_t id, const char *in_buf, in
         ble_qiot_log_e("ble_user_event_reply_handle error, ret %d", ret_code);
         return BLE_QIOT_RS_ERR;
     }
-
+#else
+    ble_qiot_log_e("llsync event not support");
+#endif
     return BLE_QIOT_RS_OK;
 }
 
 ble_qiot_ret_status_t ble_lldata_action_handle(uint8_t action_id, const char *in_buf, int len)
 {
+#ifdef BLE_QIOT_INCLUDE_ACTION
     POINTER_SANITY_CHECK(in_buf, BLE_QIOT_RS_ERR_PARA);
 
     uint16_t  parse_len                                         = 0;
@@ -317,6 +338,10 @@ ble_qiot_ret_status_t ble_lldata_action_handle(uint8_t action_id, const char *in
 end:
     ble_event_notify(BLE_QIOT_EVENT_UP_ACTION_REPLY, NULL, 0, (const char *)&handle_ret, sizeof(uint8_t));
     return BLE_QIOT_RS_ERR;
+#else
+    ble_qiot_log_e("llsync action not support");
+    return BLE_QIOT_RS_ERR;
+#endif
 }
 
 #ifdef __cplusplus

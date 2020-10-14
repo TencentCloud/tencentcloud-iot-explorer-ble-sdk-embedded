@@ -188,8 +188,8 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
 {
     POINTER_SANITY_CHECK(in_buf, BLE_QIOT_RS_ERR_PARA);
     uint8_t ch;
-    char    out_buf[128] = {0};
-    int     ret_len      = 0;
+    char    out_buf[80] = {0};
+    int     ret_len     = 0;
 
     ch = in_buf[0];
     switch (ch) {

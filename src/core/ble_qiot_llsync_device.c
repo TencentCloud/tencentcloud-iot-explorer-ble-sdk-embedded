@@ -187,7 +187,7 @@ int ble_bind_get_authcode(const char *bind_data, uint16_t data_len, char *out_bu
     BUFF_LEN_SANITY_CHECK(buf_len, SHA1_DIGEST_SIZE + BLE_QIOT_DEVICE_NAME_LEN, BLE_QIOT_RS_ERR_PARA);
 
     char    out_sign[SHA1_DIGEST_SIZE]       = {0};
-    char    sign_info[128]                   = {0};
+    char    sign_info[80]                    = {0};
     int     sign_info_len                    = 0;
     int     time_expiration                  = 0;
     int     nonce                            = 0;
@@ -254,7 +254,7 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     POINTER_SANITY_CHECK(out_buf, BLE_QIOT_RS_ERR_PARA);
     BUFF_LEN_SANITY_CHECK(buf_len, SHA1_DIGEST_SIZE + BLE_QIOT_DEVICE_NAME_LEN, BLE_QIOT_RS_ERR_PARA);
 
-    char sign_info[128]             = {0};
+    char sign_info[64]              = {0};
     char out_sign[SHA1_DIGEST_SIZE] = {0};
     int  sign_info_len              = 0;
     int  timestamp                  = 0;
@@ -307,7 +307,7 @@ int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *ou
     POINTER_SANITY_CHECK(out_buf, BLE_QIOT_RS_ERR_PARA);
     BUFF_LEN_SANITY_CHECK(buf_len, SHA1_DIGEST_SIZE, BLE_QIOT_RS_ERR_PARA);
 
-    char sign_info[128]             = {0};
+    char sign_info[32]              = {0};
     char out_sign[SHA1_DIGEST_SIZE] = {0};
     int  sign_info_len              = 0;
     int  ret_len                    = 0;

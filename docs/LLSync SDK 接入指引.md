@@ -72,7 +72,8 @@
 2. `__BYTE_ORDER__`是设备的大小端定义。
 3. SDK 支持定时广播。定义`BLE_QIOT_BUTTON_BROADCAST`为1，当设备在未绑定状态下开始广播时，经过`BLE_QIOT_BUTTON_BROADCAST`定义的时间后广播自动停止。设备处于绑定状态时不支持定时广播功能。
 4. 适配 SDK 的log输出接口 `#define BLE_QIOT_LOG_PRINT(...) printf(__VA_ARGS__)`，根据实际情况将 printf 替换为自己的打印函数。由于部分蓝牙协议栈特殊的缓存机制，LLSync SDK 提供的 ble_qiot_log_hex() 可能无法正常工作，请将宏 `#define BLE_QIOT_USER_DEFINE_HEDUMP 0` 打开，由用户自己实现 ble_qiot_log_hex() 接口。
-
+5. `BLE_QIOT_EVENT_MAX_SIZE`定义了设备端可以通过notify发送的最大数据量，用户可以通过减小此数值来优化堆栈。经测试，`BLE_QIOT_EVENT_MAX_SIZE`配置为128，`BLE_QIOT_EVENT_BUF_SIZE`配置为23时栈内存占用2k不到。
+6. `BLE_QIOT_EVENT_BUF_SIZE`配置为`BLE_QIOT_EVENT_MAX_SIZE`和MTU的最小值。
 ## 3.2 例程代码抽取
 
 SDK 已经适配了多个硬件平台，例程代码存储在`samples/nrf52832`目录下。开发者可以通过脚本将指定硬件平台的例程抽取出来，将抽取后的代码加入硬件平台进行编译。以`nordic 52832`示例：

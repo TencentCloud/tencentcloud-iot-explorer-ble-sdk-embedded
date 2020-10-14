@@ -29,8 +29,7 @@ def extract_esp32(dest_dir):
         shutil.rmtree(dest_dir)
     shutil.copytree(os.path.join(sdk_path, 'samples', 'esp32'), dest_dir)
 
-    new_sdk_path = os.path.join(dest_dir, 'components', 'qcloud_ble', 'qcloud_iot_explorer_ble')
-    shutil.copytree(os.path.join(sdk_path, 'config'), os.path.join(new_sdk_path, 'config'))
+    new_sdk_path = os.path.join(dest_dir, 'components', 'qcloud_llsync')
     shutil.copytree(os.path.join(sdk_path, 'inc'), os.path.join(new_sdk_path, 'inc'))
     shutil.copytree(os.path.join(sdk_path, 'src'), os.path.join(new_sdk_path, 'src'))
 

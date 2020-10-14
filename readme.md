@@ -29,7 +29,6 @@ qcloud_iot_explorer_ble
   ├─inc                               # 头文件
   ├─samples                           # 参考实现源码
   │   ├─esp32                         # esp32例程
-  │   ├─lifesense                     # apollo3 blue例程
   │   ├─nrf52832                      # nordic 52832例程
   ├─scripts                           # 脚本
   │   ├─code_extract                  # 代码抽取
@@ -45,4 +44,4 @@ qcloud_iot_explorer_ble
 
 ## 移植指引
 
-请参见[LLSync SDK接入指引](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded/blob/master/docs/LLSync%20SDK%20接入指引.md)
+请参见 [移植指引](./docs/LLSync%20SDK%20接入指引.md)

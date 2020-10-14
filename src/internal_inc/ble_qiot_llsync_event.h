@@ -28,9 +28,7 @@ enum {
     BLE_QIOT_EVENT_SLICE_FOOT = 3,
 };
 
-#define BLE_QIOT_EVENT_BUF_SIZE         (512)
 #define BLE_QIOT_EVENT_FIXED_HEADER_LEN (3)
-#define BLE_QIOT_EVENT_MAX_SIZE         (2048)
 
 // the bit 15 - 14 is slice flag, bit 13 - 0 is tlv length
 #define BLE_QIOT_IS_SLICE_PACKAGE(_C) ((_C)&0XC0)

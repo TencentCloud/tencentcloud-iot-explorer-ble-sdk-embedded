@@ -79,6 +79,13 @@ def _dt_get_enum_list_from_mapping(mapping):
     return [enum_prefix, enum_val]
 
 
+def _dt_not_exist(dt_data):
+    if not dt_data:
+        return True
+    else:
+        return False
+
+
 def _dt_write_public_header(write_fd):
     _dt_write_enum_to_file(write_fd, '// data type in template, corresponding to type in json file',
                            dt_config['DATA_TYPE'].name,
@@ -109,11 +116,23 @@ def _dt_write_public_header(write_fd):
                               '\n// tlv header define, bit 7 - 5 is type, bit 4 - 0 depends on type of data template')
     _dt_write_macro_to_file(write_fd, 'PARSE_TLV_HEAD_TYPE(_c)', '(((_c) & 0xFF) >> 5)')
     _dt_write_macro_to_file(write_fd, 'PARSE_TLV_HEAD_ID(_c)', '((_c) & 0x1F)')
-    _dt_write_macro_to_file(write_fd, 'PACKAGE_TLV_HEAD(_type, _id)', '(((_type) << 5) | ((_id) & 0x1F))')
+    _dt_write_macro_to_file(write_fd, 'PACKAGE_TLV_HEAD(_type, _id)', '(((_type) << 5) | ((_id) & 0x1F))\n')
+
+    _dt_write_newline_to_file(write_fd, '\n// define tlv struct')
+    _dt_write_newline_to_file(write_fd, 'typedef struct{'
+                                        '\n\tuint8_t type;'
+                                        '\n\tuint8_t id;'
+                                        '\n\tuint16_t len;'
+                                        '\n\tchar *val;'
+                                        '\n}e_ble_tlv;')
     pass
 
 
 def _dt_trans_property_json_to_h_file(write_fd, _proterty_data):
+    if _dt_not_exist(_proterty_data):
+        return
+
+    _dt_write_macro_to_file(write_fd, 'INCLUDE_PROPERTY', '')
     # all property id define, the tail of macro name corresponding to property id in json file
     _dt_write_enum_to_file(write_fd, '// define property id', 'PROPERTY_ID', _dt_get_enum_list_from_ids(_proterty_data))
 
@@ -161,6 +180,10 @@ def _dt_trans_property_json_to_h_file(write_fd, _proterty_data):
 
 
 def _dt_trans_event_json_to_h_file(write_fd, _event_data):
+    if _dt_not_exist(_event_data):
+        return
+
+    _dt_write_macro_to_file(write_fd, 'INCLUDE_EVENT', '')
     # define event id
     _dt_write_enum_to_file(write_fd, '// define event id', 'EVENT_ID', _dt_get_enum_list_from_ids(_event_data))
 
@@ -214,6 +237,10 @@ def _dt_trans_event_json_to_h_file(write_fd, _event_data):
 
 
 def _dt_trans_action_json_to_h_file(write_fd, _action_data):
+    if _dt_not_exist(_action_data):
+        return
+
+    _dt_write_macro_to_file(write_fd, 'INCLUDE_ACTION', '')
     # define action id
     _dt_write_enum_to_file(write_fd, '// define action id', 'ACTION_ID', _dt_get_enum_list_from_ids(_action_data))
     max_input_id, max_output_id = 0, 0
@@ -285,13 +312,6 @@ def _dt_trans_action_json_to_h_file(write_fd, _action_data):
     _dt_write_newline_to_file(write_fd, '\n// define max input id and output id in all of input id and output id above')
     _dt_write_macro_to_file(write_fd, 'ACTION_INPUT_ID_BUTT', str(max_input_id - 1))
     _dt_write_macro_to_file(write_fd, 'ACTION_OUTPUT_ID_BUTT', str(max_output_id - 1))
-    _dt_write_newline_to_file(write_fd, '\n// define tlv struct')
-    _dt_write_newline_to_file(write_fd, 'typedef struct{'
-                                        '\n\tuint8_t type;'
-                                        '\n\tuint8_t id;'
-                                        '\n\tuint16_t len;'
-                                        '\n\tchar *val;'
-                                        '\n}e_ble_tlv;')
     _dt_write_newline_to_file(write_fd, '\n// define action input handle, return 0 is success, other is error.\n'
                                         '// input_param_array carry the data from server, include input id, data length ,data val\n'
                                         '// input_array_size means how many input id\n'
@@ -405,6 +425,9 @@ def _dt_get_function_param_by_type(data_type):
 
 
 def _dt_trans_property_json_to_c_file(write_fd, _proterty_data):
+    if _dt_not_exist(_proterty_data):
+        return
+
     # define property set/get function
     for property_id in _proterty_data:
         _dt_write_newline_to_file(write_fd,
@@ -441,6 +464,9 @@ def _dt_trans_property_json_to_c_file(write_fd, _proterty_data):
 
 
 def _dt_trans_event_json_to_c_file(write_fd, _evnet_data):
+    if _dt_not_exist(_evnet_data):
+        return
+
     for event in _evnet_data:
         # define event get function
         for param in event.get('params'):
@@ -480,6 +506,9 @@ def _dt_trans_event_json_to_c_file(write_fd, _evnet_data):
 
 
 def _dt_trans_action_json_to_c_file(write_fd, _action_data):
+    if _dt_not_exist(_action_data):
+        return
+
     for idx, action in enumerate(_action_data):
         # define action input and output callback
         _dt_write_newline_to_file(write_fd,
