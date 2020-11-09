@@ -116,5 +116,5 @@ extract code success
 
 # 4 LLSync 协议
 
-请参见[LLSync蓝牙设备接入协议](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded/blob/master/docs/LLSync蓝牙设备接入协议.pdf)
+请参见[LLSync蓝牙设备接入协议](./LLSync蓝牙设备接入协议1.2.0.pdf)
 

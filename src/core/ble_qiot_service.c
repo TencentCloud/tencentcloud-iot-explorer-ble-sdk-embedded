@@ -184,49 +184,152 @@ void ble_gap_disconnect_cb(void)
     ble_connection_state_set(E_BLE_DISCONNECTED);
 }
 
+static uint8_t ble_msg_type_header_len(uint8_t type)
+{
+    if (type == BLE_QIOT_GET_STATUS_REPLY_DATA_TYPE) {
+        return BLE_QIOT_GET_STATUS_REPLY_HEADER_LEN;
+    } else {
+        return BLE_QIOT_DATA_FIXED_HEADER_LEN;
+    }
+}
+
 int ble_device_info_msg_handle(const char *in_buf, int in_len)
 {
     POINTER_SANITY_CHECK(in_buf, BLE_QIOT_RS_ERR_PARA);
     uint8_t ch;
-    char    out_buf[80] = {0};
-    int     ret_len     = 0;
+    char     out_buf[80] = {0};
+    uint8_t  slice_flag  = 0;
+    uint8_t  header_len  = 0;
+    uint8_t  slice_type  = 0;
+    uint16_t tmp_len     = 0;
+    char *   p_data      = NULL;
+    int      p_data_len  = 0;
+    int      ret_len     = 0;
+    int      ret         = BLE_QIOT_RS_OK;
 
-    ch = in_buf[0];
+
+    p_data     = (char *)in_buf;
+    p_data_len = in_len;
+
+    // E_DEV_MSG_SYNC_TIME, E_DEV_MSG_CONN_VALID, E_DEV_MSG_BIND_SUCC, E_DEV_MSG_UNBIND this 4 type
+    // of message has more than one bytes data, it may cut to several slices, here need to merge them
+    // together, other type message only has 1 byte data, not need merge.
+    if(in_len > 3) {
+        slice_type = in_buf[0];
+        slice_flag = in_buf[1];
+        if (BLE_QIOT_IS_SLICE_PACKAGE(slice_flag)) {
+            if (BLE_QIOT_IS_SLICE_HEADER(slice_flag)) {
+                if (sg_ble_slice_data.have_data) {
+                    ble_qiot_log_e("new data coming when package msg, clear the buffer");
+                    memset(&sg_ble_slice_data, 0, sizeof(sg_ble_slice_data));
+                }
+                sg_ble_slice_data.have_data = true;
+                sg_ble_slice_data.type      = slice_type;
+                header_len                  = ble_msg_type_header_len(slice_type);
+                // reserved data length space
+                sg_ble_slice_data.buf_len += header_len;
+
+                sg_ble_slice_data.buf[0] = in_buf[0];
+                if (BLE_QIOT_GET_STATUS_REPLY_DATA_TYPE == slice_type) {
+                    sg_ble_slice_data.buf[1] = in_buf[1];
+                }
+                memcpy(sg_ble_slice_data.buf + sg_ble_slice_data.buf_len, in_buf + header_len, in_len - header_len);
+                sg_ble_slice_data.buf_len += (in_len - header_len);
+                return BLE_QIOT_RS_OK;
+            } else if (BLE_QIOT_IS_SLICE_BODY(slice_flag)) {
+                if (!sg_ble_slice_data.have_data) {
+                    ble_qiot_log_e("slice no header package");
+                    return BLE_QIOT_RS_ERR;
+                }
+                if (slice_type != sg_ble_slice_data.type) {
+                    ble_qiot_log_e("invalid msg type %d, except msg type %d", slice_type, sg_ble_slice_data.type);
+                    return BLE_QIOT_RS_ERR;
+                }
+                if (sg_ble_slice_data.buf_len + (in_len - header_len) > sizeof(sg_ble_slice_data.buf)) {
+                    ble_qiot_log_e("slice data is too long, max length %d", sizeof(sg_ble_slice_data.buf));
+                    return BLE_QIOT_RS_ERR;
+                }
+                header_len = ble_msg_type_header_len(slice_type);
+                memcpy(sg_ble_slice_data.buf + sg_ble_slice_data.buf_len, in_buf + header_len, in_len - header_len);
+                sg_ble_slice_data.buf_len += (in_len - header_len);
+                return BLE_QIOT_RS_OK;
+            } else {
+                if (!sg_ble_slice_data.have_data) {
+                    ble_qiot_log_e("slice no header package");
+                    return BLE_QIOT_RS_ERR;
+                }
+                if (slice_type != sg_ble_slice_data.type) {
+                    ble_qiot_log_e("invalid msg type %d, except msg type %d", slice_type, sg_ble_slice_data.type);
+                    return BLE_QIOT_RS_ERR;
+                }
+                if (sg_ble_slice_data.buf_len + (in_len - header_len) > sizeof(sg_ble_slice_data.buf)) {
+                    ble_qiot_log_e("slice data is too long, max length %d", sizeof(sg_ble_slice_data.buf));
+                    return BLE_QIOT_RS_ERR;
+                }
+                header_len = ble_msg_type_header_len(slice_type);
+                memcpy(sg_ble_slice_data.buf + sg_ble_slice_data.buf_len, in_buf + header_len, in_len - header_len);
+                sg_ble_slice_data.buf_len += (in_len - header_len);
+                // write data length
+                tmp_len = HTONS(sg_ble_slice_data.buf_len - header_len);
+                if (BLE_QIOT_GET_STATUS_REPLY_DATA_TYPE == slice_type) {
+                    memcpy(&sg_ble_slice_data.buf[2], &tmp_len, sizeof(tmp_len));
+                } else {
+                    memcpy(&sg_ble_slice_data.buf[1], &tmp_len, sizeof(tmp_len));
+                }
+                p_data     = sg_ble_slice_data.buf;
+                p_data_len = sg_ble_slice_data.buf_len;
+                // ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "tlv", p_data, p_data_len);
+            }
+        } else {
+            ble_qiot_log_d("data not slice");
+        }
+    }
+
+    // ch = in_buf[0];
+    ch = p_data[0];
     switch (ch) {
         case E_DEV_MSG_SYNC_TIME:
-            ret_len = ble_bind_get_authcode(in_buf + 1, in_len - 1, out_buf, sizeof(out_buf));
+            ret_len = ble_bind_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
             if (ret_len <= 0) {
                 ble_qiot_log_e("get bind authcode failed");
-                return BLE_QIOT_RS_ERR;
+                ret = BLE_QIOT_RS_ERR;
+                break;
             }
-            return ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, NULL, 0, out_buf, ret_len);
+            ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, NULL, 0, out_buf, ret_len);
+            break;
         case E_DEV_MSG_CONN_VALID:
-            ret_len = ble_conn_get_authcode(in_buf + 1, in_len - 1, out_buf, sizeof(out_buf));
+            ret_len = ble_conn_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
             if (ret_len <= 0) {
                 ble_qiot_log_e("get connect authcode failed");
-                return BLE_QIOT_RS_ERR;
+                ret = BLE_QIOT_RS_ERR;
+                break;
             }
-            return ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_CONN_SIGN_RET, NULL, 0, out_buf, ret_len);
+            ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_CONN_SIGN_RET, NULL, 0, out_buf, ret_len);
+            break;
         case E_DEV_MSG_BIND_SUCC:
-            if (BLE_QIOT_RS_OK != ble_bind_write_result(in_buf + 1, in_len - 1)) {
+            if (BLE_QIOT_RS_OK != ble_bind_write_result(p_data + 3, p_data_len - 3)) {
                 ble_qiot_log_e("write bind result failed");
-                return BLE_QIOT_RS_ERR;
+                ret = BLE_QIOT_RS_ERR;
+                break;
             }
             break;
         case E_DEV_MSG_BIND_FAIL:
             ble_qiot_log_i("get msg bind fail");
             break;
         case E_DEV_MSG_UNBIND:
-            ret_len = ble_unbind_get_authcode(in_buf + 1, in_len - 1, out_buf, sizeof(out_buf));
+            ret_len = ble_unbind_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
             if (ret_len <= 0) {
                 ble_qiot_log_e("get unbind authcode failed");
-                return BLE_QIOT_RS_ERR;
+                ret = BLE_QIOT_RS_ERR;
+                break;
             }
-            return ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET, NULL, 0, out_buf, ret_len);
+            ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET, NULL, 0, out_buf, ret_len);
+            break;
         case E_DEV_MSG_CONN_SUCC:
             ble_qiot_log_i("get msg connect success");
             llsync_connection_state_set(E_LLSYNC_CONNECTED);
-            return ble_event_report_device_info();
+            ret = ble_event_report_device_info();
+            break;
         case E_DEV_MSG_CONN_FAIL:
             ble_qiot_log_i("get msg connect fail");
             break;
@@ -234,7 +337,8 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
             ble_qiot_log_i("get msg unbind success");
             if (BLE_QIOT_RS_OK != ble_unbind_write_result()) {
                 ble_qiot_log_e("write unbind result failed");
-                return BLE_QIOT_RS_ERR;
+                ret = BLE_QIOT_RS_ERR;
+                break;
             }
             break;
         case E_DEV_MSG_UNBIND_FAIL:
@@ -243,17 +347,9 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
         default:
             break;
     }
+    memset(&sg_ble_slice_data, 0, sizeof(sg_ble_slice_data));
 
-    return BLE_QIOT_RS_OK;
-}
-
-static uint8_t ble_msg_type_header_len(uint8_t type)
-{
-    if (type == BLE_QIOT_GET_STATUS_REPLY_DATA_TYPE) {
-        return BLE_QIOT_GET_STATUS_REPLY_HEADER_LEN;
-    } else {
-        return BLE_QIOT_DATA_FIXED_HEADER_LEN;
-    }
+    return ret;
 }
 
 // lldata message from remote

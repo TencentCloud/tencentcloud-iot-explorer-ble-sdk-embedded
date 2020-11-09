@@ -147,7 +147,8 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
 
     int ret_len = 0;
 
-    out_buf[ret_len] = sg_llsync_bind_state;
+    out_buf[ret_len] = sg_llsync_bind_state & LLSYNC_BIND_STATE_MASK;
+    out_buf[ret_len] |= BLE_QIOT_LLSYNC_PROTOCOL_VERSION << 4;
     ret_len++;
 
     if (E_LLSYNC_BIND_SUCC == out_buf[0]) {
@@ -195,8 +196,14 @@ int ble_bind_get_authcode(const char *bind_data, uint16_t data_len, char *out_bu
     uint8_t secret[BLE_QIOT_PSK_LEN / 4 * 3] = {0};
     int     secret_len                       = 0;
 
-    nonce           = NTOHL(((ble_bind_data *)bind_data)->nonce);
-    time_expiration = BLE_GET_EXPIRATION_TIME(NTOHL(((ble_bind_data *)bind_data)->timestamp));
+    // if the pointer "char *bind_data" is not aligned with 4 byte, in some cpu convert it to
+    // pointer "ble_bind_data *" work correctly, but some cpu will get wrong value, or cause
+    // other "Unexpected Error". Here copy it to a local variable make sure aligned with 4 byte.
+    ble_bind_data bind_data_aligned;
+    memcpy(&bind_data_aligned, bind_data, sizeof(ble_bind_data));
+
+    nonce           = NTOHL(bind_data_aligned.nonce);
+    time_expiration = BLE_GET_EXPIRATION_TIME(NTOHL(bind_data_aligned.timestamp));
 
     // [10 bytes product_id] + [x bytes device name] + ';' + [4 bytes nonce] + ';' + [4 bytes timestamp]
     memcpy(sign_info, sg_device_info.product_id, sizeof(sg_device_info.product_id));
@@ -260,14 +267,20 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     int  timestamp                  = 0;
     int  ret_len                    = 0;
 
+    // if the pointer "char *bind_data" is not aligned with 4 byte, in some cpu convert it to
+    // pointer "ble_bind_data *" work correctly, but some cpu will get wrong value, or cause
+    // other "Unexpected Error". Here copy it to a local variable make sure aligned with 4 byte.
+    ble_conn_data conn_data_aligned;
+    memcpy(&conn_data_aligned, conn_data, sizeof(ble_conn_data));
+
     // valid sign
-    timestamp = NTOHL(((ble_conn_data *)conn_data)->timestamp);
+    timestamp = NTOHL(conn_data_aligned.timestamp);
     snprintf(sign_info + sign_info_len, sizeof(sign_info) - sign_info_len, "%d", timestamp);
     sign_info_len += strlen(sign_info + sign_info_len);
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign in", sign_info, sign_info_len);
     utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign out", out_sign, SHA1_DIGEST_SIZE);
-    if (0 != memcmp(((ble_conn_data *)conn_data)->sign_info, out_sign, SHA1_DIGEST_SIZE)) {
+    if (0 != memcmp(&conn_data_aligned.sign_info, out_sign, SHA1_DIGEST_SIZE)) {
         ble_qiot_log_e("invalid connect sign");
         return BLE_QIOT_RS_VALID_SIGN_ERR;
     }
@@ -277,7 +290,7 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     sign_info_len = 0;
 
     // expiration time + product id + device name
-    timestamp = BLE_GET_EXPIRATION_TIME(NTOHL(((ble_conn_data *)conn_data)->timestamp));
+    timestamp = BLE_GET_EXPIRATION_TIME(NTOHL(conn_data_aligned.timestamp));
     snprintf(sign_info + sign_info_len, sizeof(sign_info) - sign_info_len, "%d", timestamp);
     sign_info_len += strlen(sign_info + sign_info_len);
     memcpy(sign_info + sign_info_len, sg_device_info.product_id, sizeof(sg_device_info.product_id));
