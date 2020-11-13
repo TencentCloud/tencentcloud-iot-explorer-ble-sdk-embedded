@@ -155,6 +155,7 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
         uint8_t md5_in_buf[128]              = {0};
         uint8_t md5_in_len                   = 0;
         uint8_t md5_out_buf[MD5_DIGEST_SIZE] = {0};
+        int i;
 
         // 1 bytes state + 8 bytes device identify_str + 8 bytes identify_str
         memcpy((char *)md5_in_buf, sg_device_info.product_id, sizeof(sg_device_info.product_id));
@@ -162,7 +163,7 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
         memcpy((char *)md5_in_buf + md5_in_len, sg_device_info.device_name, strlen(sg_device_info.device_name));
         md5_in_len += strlen(sg_device_info.device_name);
         utils_md5(md5_in_buf, md5_in_len, md5_out_buf);
-        for (int i = 0; i < MD5_DIGEST_SIZE / 2; i++) {
+        for (i = 0; i < MD5_DIGEST_SIZE / 2; i++) {
             out_buf[i + ret_len] = md5_out_buf[i] ^ md5_out_buf[i + MD5_DIGEST_SIZE / 2];
         }
         ret_len += MD5_DIGEST_SIZE / 2;
