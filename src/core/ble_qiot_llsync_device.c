@@ -151,7 +151,7 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
     out_buf[ret_len] |= BLE_QIOT_LLSYNC_PROTOCOL_VERSION << 4;
     ret_len++;
 
-    if (E_LLSYNC_BIND_SUCC == out_buf[0]) {
+    if (E_LLSYNC_BIND_SUCC == (sg_llsync_bind_state & LLSYNC_BIND_STATE_MASK)) {
         uint8_t md5_in_buf[128]              = {0};
         uint8_t md5_in_len                   = 0;
         uint8_t md5_out_buf[MD5_DIGEST_SIZE] = {0};
@@ -169,7 +169,7 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
         memcpy(out_buf + ret_len, sg_core_data.identify_str, sizeof(sg_core_data.identify_str));
         ret_len += sizeof(sg_core_data.identify_str);
     } else {
-        // 1 bytes state + 6 bytes mac + 8 bytes identify_str
+        // 1 bytes state + 6 bytes mac + 10 bytes product id
         memcpy(out_buf + ret_len, sg_device_info.mac, BLE_QIOT_MAC_LEN);
         ret_len += BLE_QIOT_MAC_LEN;
         memcpy(out_buf + ret_len, sg_device_info.product_id, sizeof(sg_device_info.product_id));
