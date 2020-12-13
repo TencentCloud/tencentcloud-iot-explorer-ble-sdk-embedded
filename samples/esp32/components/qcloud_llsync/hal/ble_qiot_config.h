@@ -68,7 +68,7 @@ extern "C" {
 // define user develop version, pick from "a-zA-Z0-9.-_" and length limits 1～32 bytes.
 // must be consistent with the firmware version that user write in the iot-explorer console
 // refer https://cloud.tencent.com/document/product/1081/40296
-#define BLE_QIOT_USER_DEVELOPER_VERSION "0.0.4"
+#define BLE_QIOT_USER_DEVELOPER_VERSION "0.0.1"
 
 #define BLE_QIOT_SUPPORT_OTA 1  // 1 is support ota, others not
 #if (1 == BLE_QIOT_SUPPORT_OTA)

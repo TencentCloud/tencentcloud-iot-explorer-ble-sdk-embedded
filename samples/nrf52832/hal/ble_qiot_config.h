@@ -70,6 +70,17 @@ extern "C" {
     BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED /**< The advertising time-out (in units of seconds). When set to 0, we will \
                                              never time out. */
 
+// the following definition will affect the stack that LLSync used，the minimum value tested is
+// 2048（BLE_QIOT_EVENT_MAX_SIZE is 128, BLE_QIOT_EVENT_BUF_SIZE is 23 ） the max length that llsync event data, depends
+// on the length of user data reported to Tencent Lianlian at a time
+#define BLE_QIOT_EVENT_MAX_SIZE (128)
+// the minimum between BLE_QIOT_EVENT_MAX_SIZE and mtu
+#define BLE_QIOT_EVENT_BUF_SIZE (23)
+
+// define user develop version, pick from "a-zA-Z0-9.-_" and length limits 1～32 bytes.
+// must be consistent with the firmware version that user write in the iot-explorer console
+// refer https://cloud.tencent.com/document/product/1081/40296
+#define BLE_QIOT_USER_DEVELOPER_VERSION "0.0.1"
 #ifdef __cplusplus
 }
 #endif

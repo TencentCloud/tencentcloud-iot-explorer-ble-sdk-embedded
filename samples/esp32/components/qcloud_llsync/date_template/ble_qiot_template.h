@@ -20,103 +20,104 @@ extern "C"{
 
 // data type in template, corresponding to type in json file
 enum {
-    BLE_QIOT_DATA_TYPE_BOOL = 0,
-    BLE_QIOT_DATA_TYPE_INT,
-    BLE_QIOT_DATA_TYPE_STRING,
-    BLE_QIOT_DATA_TYPE_FLOAT,
-    BLE_QIOT_DATA_TYPE_ENUM,
-    BLE_QIOT_DATA_TYPE_TIME,
-    BLE_QIOT_DATA_TYPE_BUTT,
+	BLE_QIOT_DATA_TYPE_BOOL = 0,
+	BLE_QIOT_DATA_TYPE_INT,
+	BLE_QIOT_DATA_TYPE_STRING,
+	BLE_QIOT_DATA_TYPE_FLOAT,
+	BLE_QIOT_DATA_TYPE_ENUM,
+	BLE_QIOT_DATA_TYPE_TIME,
+	BLE_QIOT_DATA_TYPE_BUTT,
 };
 
-// message type, reference data template
+// message type, reference data template 
 enum {
-    BLE_QIOT_MSG_TYPE_PROPERTY = 0,
-    BLE_QIOT_MSG_TYPE_EVENT,
-    BLE_QIOT_MSG_TYPE_ACTION,
-    BLE_QIOT_MSG_TYPE_BUTT,
+	BLE_QIOT_MSG_TYPE_PROPERTY = 0,
+	BLE_QIOT_MSG_TYPE_EVENT,
+	BLE_QIOT_MSG_TYPE_ACTION,
+	BLE_QIOT_MSG_TYPE_BUTT,
 };
 
 // define property authority, not used
 enum {
-    BLE_QIOT_PROPERTY_AUTH_RW = 0,
-    BLE_QIOT_PROPERTY_AUTH_READ,
-    BLE_QIOT_PROPERTY_AUTH_BUTT,
+	BLE_QIOT_PROPERTY_AUTH_RW = 0,
+	BLE_QIOT_PROPERTY_AUTH_READ,
+	BLE_QIOT_PROPERTY_AUTH_BUTT,
 };
 
 // define reply result
 enum {
-    BLE_QIOT_REPLY_SUCCESS = 0,
-    BLE_QIOT_REPLY_FAIL,
-    BLE_QIOT_REPLY_DATA_ERR,
-    BLE_QIOT_REPLY_BUTT,
+	BLE_QIOT_REPLY_SUCCESS = 0,
+	BLE_QIOT_REPLY_FAIL,
+	BLE_QIOT_REPLY_DATA_ERR,
+	BLE_QIOT_REPLY_BUTT,
 };
 
 // define message flow direction
 enum {
-    BLE_QIOT_EFFECT_REQUEST = 0,
-    BLE_QIOT_EFFECT_REPLY,
-    BLE_QIOT_EFFECT_BUTT,
+	BLE_QIOT_EFFECT_REQUEST = 0,
+	BLE_QIOT_EFFECT_REPLY,
+	BLE_QIOT_EFFECT_BUTT,
 };
 
 // define message type that from server to device
 enum {
-    BLE_QIOT_DATA_DOWN_REPORT_REPLY = 0,
-    BLE_QIOT_DATA_DOWN_CONTROL,
-    BLE_QIOT_DATA_DOWN_GET_STATUS_REPLY,
-    BLE_QIOT_DATA_DOWN_ACTION,
-    BLE_QIOT_DATA_DOWN_EVENT_REPLY,
+	BLE_QIOT_DATA_DOWN_REPORT_REPLY = 0,
+	BLE_QIOT_DATA_DOWN_CONTROL,
+	BLE_QIOT_DATA_DOWN_GET_STATUS_REPLY,
+	BLE_QIOT_DATA_DOWN_ACTION,
+	BLE_QIOT_DATA_DOWN_EVENT_REPLY,
 };
 
 // define message type that from device to server
 enum {
-    BLE_QIOT_EVENT_UP_PROPERTY_REPORT = 0,
-    BLE_QIOT_EVENT_UP_CONTROL_REPLY,
-    BLE_QIOT_EVENT_UP_GET_STATUS,
-    BLE_QIOT_EVENT_UP_EVENT_POST,
-    BLE_QIOT_EVENT_UP_ACTION_REPLY,
-    BLE_QIOT_EVENT_UP_BIND_SIGN_RET,
-    BLE_QIOT_EVENT_UP_CONN_SIGN_RET,
-    BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET,
-    BLE_QIOT_EVENT_UP_REPORT_MTU,
-    BLE_QIOT_EVENT_UP_REPLY_OTA_REPORT,
-    BLE_QIOT_EVENT_UP_REPLY_OTA_DATA,
-    BLE_QIOT_EVENT_UP_REPORT_CHECK_RESULT,
-    BLE_QIOT_EVENT_UP_BUTT,
+	BLE_QIOT_EVENT_UP_PROPERTY_REPORT = 0,
+	BLE_QIOT_EVENT_UP_CONTROL_REPLY,
+	BLE_QIOT_EVENT_UP_GET_STATUS,
+	BLE_QIOT_EVENT_UP_EVENT_POST,
+	BLE_QIOT_EVENT_UP_ACTION_REPLY,
+	BLE_QIOT_EVENT_UP_BIND_SIGN_RET,
+	BLE_QIOT_EVENT_UP_CONN_SIGN_RET,
+	BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET,
+	BLE_QIOT_EVENT_UP_REPORT_MTU,
+	BLE_QIOT_EVENT_UP_REPORT_VERSION,
+	BLE_QIOT_EVENT_UP_REPLY_OTA_REPORT,
+	BLE_QIOT_EVENT_UP_REPLY_OTA_DATA,
+	BLE_QIOT_EVENT_UP_REPORT_CHECK_RESULT,
+	BLE_QIOT_EVENT_UP_BUTT,
 };
 
 // msg header define, bit 7-6 is msg type, bit 5 means request or reply, bit 4 - 0 is id
-#define	BLE_QIOT_PARSE_MSG_HEAD_TYPE(_C)        	(((_C) & 0XFF) >> 6)
+#define	BLE_QIOT_PARSE_MSG_HEAD_TYPE(_C)        	(((_C) & 0XFF) >> 6)            
 #define	BLE_QIOT_PARSE_MSG_HEAD_EFFECT(_C)      	((((_C) & 0XFF) & 0X20) ? BLE_QIOT_EFFECT_REPLY : BLE_QIOT_EFFECT_REQUEST)
-#define	BLE_QIOT_PARSE_MSG_HEAD_ID(_C)          	((_C) & 0X1F)
+#define	BLE_QIOT_PARSE_MSG_HEAD_ID(_C)          	((_C) & 0X1F)                   
 #define	BLE_QIOT_PACKAGE_MSG_HEAD(_TYPE, _REPLY, _ID)	(((_TYPE) << 6) | (((_REPLY) == BLE_QIOT_EFFECT_REPLY) << 5) | ((_ID) & 0X1F))
 
 // tlv header define, bit 7 - 5 is type, bit 4 - 0 depends on type of data template
-#define	BLE_QIOT_PARSE_TLV_HEAD_TYPE(_C)        	(((_C) & 0XFF) >> 5)
-#define	BLE_QIOT_PARSE_TLV_HEAD_ID(_C)          	((_C) & 0X1F)
+#define	BLE_QIOT_PARSE_TLV_HEAD_TYPE(_C)        	(((_C) & 0XFF) >> 5)            
+#define	BLE_QIOT_PARSE_TLV_HEAD_ID(_C)          	((_C) & 0X1F)                   
 #define	BLE_QIOT_PACKAGE_TLV_HEAD(_TYPE, _ID)   	(((_TYPE) << 5) | ((_ID) & 0X1F))
 
 
 // define tlv struct
 typedef struct{
-    uint8_t type;
-    uint8_t id;
-    uint16_t len;
-    char *val;
+	uint8_t type;
+	uint8_t id;
+	uint16_t len;
+	char *val;
 }e_ble_tlv;
-#define	BLE_QIOT_INCLUDE_PROPERTY
+#define	BLE_QIOT_INCLUDE_PROPERTY               	                                
 
 // define property id
 enum {
-    BLE_QIOT_PROPERTY_ID_CH20_PPM_VALUE = 0,
-    BLE_QIOT_PROPERTY_ID_BUTT,
+	BLE_QIOT_PROPERTY_ID_CH20_PPM_VALUE = 0,
+	BLE_QIOT_PROPERTY_ID_BUTT,
 };
 
 // define ch20_ppm_value attributes
-#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_MIN    	(0)
-#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_MAX    	(2)
-#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_START  	(0)
-#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_STEP   	(0.001)
+#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_MIN    	(0)                             
+#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_MAX    	(2)                             
+#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_START  	(0)                             
+#define	BLE_QIOT_PROPERTY_CH20_PPM_VALUE_STEP   	(0.001)                         
 
 // define property set handle return 0 if success, other is error
 // sdk call the function that inform the server data to the device
@@ -128,10 +129,10 @@ typedef int (*property_get_cb)(char *buf, uint16_t buf_len);
 
 // each property have a struct ble_property_t, make up a array named sg_ble_property_array
 typedef struct{
-    property_set_cb set_cb;	//set callback
-    property_get_cb get_cb;	//get callback
-    uint8_t authority;	//property authority
-    uint8_t type;	//data type
+	property_set_cb set_cb;	//set callback
+	property_get_cb get_cb;	//get callback
+	uint8_t authority;	//property authority
+	uint8_t type;	//data type
 }ble_property_t;
 // property module
 #ifdef BLE_QIOT_INCLUDE_PROPERTY

@@ -195,7 +195,9 @@ void ble_gap_disconnect_cb(void)
 {
     llsync_connection_state_set(E_LLSYNC_DISCONNECTED);
     ble_connection_state_set(E_BLE_DISCONNECTED);
+#if (1 == BLE_QIOT_SUPPORT_OTA)
     ble_ota_stop();
+#endif
 }
 
 static uint8_t ble_msg_type_header_len(uint8_t type)
