@@ -29,6 +29,10 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len);
 // return 0 is success, other is error
 int ble_lldata_msg_handle(const char *in_buf, int in_len);
 
+// ota message from remote
+// return 0 is success, other is error
+int ble_ota_msg_handle(const char *buf, uint16_t len);
+
 #ifdef __cplusplus
 }
 #endif

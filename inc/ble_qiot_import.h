@@ -20,22 +20,20 @@ extern "C" {
 #include "ble_qiot_export.h"
 
 // 16 bits service UUIDs list, use advertising type 0x02 or 0x03
-typedef struct
-{
-    uint8_t uuid_num;
+typedef struct {
+    uint8_t   uuid_num;
     uint16_t *uuids;
 } uuid_list_s;
 
 // advertise manufacture specific data, use advertising type 0xFF
-typedef struct 
-{
+typedef struct {
     uint16_t company_identifier;
     uint8_t *adv_data;
     uint8_t  adv_data_len;
 } manufacturer_data_s;
 
 typedef struct {
-    uuid_list_s uuid_info;
+    uuid_list_s         uuid_info;
     manufacturer_data_s manufacturer_info;
 } adv_info_s;
 
@@ -118,6 +116,34 @@ ble_qiot_ret_status_t ble_send_notify(uint8_t *buf, uint8_t len);
  * @return the value
  */
 uint16_t ble_get_user_data_mtu_size(void);
+
+enum {
+    BLE_OTA_ENABLE              = 1,  // ota enable
+    BLE_OTA_DISABLE_LOW_POWER   = 2,  // the device low power can not upgrade
+    BLE_OTA_DISABLE_LOW_VERSION = 3,  // disable upgrade low version
+};
+/**
+ * @brief get ota is enable
+ * @param version the ota file version
+ * @return BLE_OTA_ENABLE is enable, others disable
+ * @note can not be blocking, the reason defined by users
+ */
+uint8_t ble_ota_is_enable(const char *version);
+
+/**
+ * @brief get the address the ota file will be saved
+ * @return the flash address
+ */
+uint32_t ble_ota_get_download_addr(void);
+
+/**
+ * @brief write data to flash
+ * @param flash_addr write address in flash
+ * @param write_buf  point to write buf
+ * @param write_len  length of data to write
+ * @return write_len is success, other is error
+ */
+int ble_ota_write_flash(uint32_t flash_addr, const char *write_buf, uint16_t write_len);
 
 // timer type
 enum {

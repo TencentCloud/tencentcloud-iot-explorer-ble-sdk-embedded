@@ -20,13 +20,17 @@
 |  4   |     ble_get_mac     |         获取设备蓝牙MAC地址          |
 |  5   |   ble_write_flash   |  SDK 需要存储内部信息到设备存储介质  |
 |  6   |   ble_read_flash    | SDK 需要从设备存储介质读取存储的信息 |
-|  7   |     定时器接口      |             定时器类接口             |
+|  7   |   ble_ota_is_enable    | 获取设备是否允许升级 |
+|  8   |   ble_ota_get_download_addr    | 获取设备升级文件的存储基地址 |
+|  9  |   ble_ota_write_flash    | 存储升级文件内容到介质 |
+|  10   |     定时器接口      |             定时器类接口             |
 
 1. 设备三元信息在 [物联网开发平台](https://cloud.tencent.com/product/iotexplorer) 新建产品并创建设备后通过 [查看设备信息](https://cloud.tencent.com/document/product/1081/34741#.E6.9F.A5.E7.9C.8B.E8.AE.BE.E5.A4.87.E4.BF.A1.E6.81.AF) 获取。开发者需要负责信息存储，存储介质不做限制，开发阶段可以将三元信息保存在代码中，量产阶段可以将信息存储在片上 flash、片外 flash、eeprom等或带有文件系统的存储介质中，方便量产烧录。
 2. 不同的蓝牙协议栈获取到的 mac 地址字节序可能不同，适配该接口时可能需要进行转换。LLSync 使用大端方式存储，即 mac 地址的第 0 字节存储在低地址，mac 地址的第 5 字节存储在高地址，一般与阅读顺序相同。
 3. SDK 需要存储约 20 字节数据到 flash 中，存储介质不做限制，存储地址由开发者划分，通过宏`BLE_QIOT_RECORD_FLASH_ADDR`指定；若开发者使用文件系统保存SDK数据，不涉及存储地址时宏`BLE_QIOT_RECORD_FLASH_ADDR`可设置为 0。
 4. ble_write_flash() 接口只负责数据写入，擦除、读写平衡等需由开发者在合适的时机进行，例如在写入前进行擦除，写入完成后回收旧page等。
-5. 当使用定时广播功能时，需要实现定时器类接口。若不使用定时广播功能，定时器类接口可以实现为桩函数。
+5. 当使用定时广播功能时或OTA功能时，需要实现定时器类接口。若不使用定定时器类接口可以实现为桩函数。
+6. ble_ota_is_enable() 接口允许用户根据当前设备状态决定是否升级版本。
 
 ### 2.1.2 BLE 协议栈适配
 
@@ -74,6 +78,12 @@
 4. 适配 SDK 的log输出接口 `#define BLE_QIOT_LOG_PRINT(...) printf(__VA_ARGS__)`，根据实际情况将 printf 替换为自己的打印函数。由于部分蓝牙协议栈特殊的缓存机制，LLSync SDK 提供的 ble_qiot_log_hex() 可能无法正常工作，请将宏 `#define BLE_QIOT_USER_DEFINE_HEDUMP 0` 打开，由用户自己实现 ble_qiot_log_hex() 接口。
 5. `BLE_QIOT_EVENT_MAX_SIZE`定义了设备端可以通过notify发送的最大数据量，用户可以通过减小此数值来优化堆栈。经测试，`BLE_QIOT_EVENT_MAX_SIZE`配置为128，`BLE_QIOT_EVENT_BUF_SIZE`配置为23时栈内存占用2k不到。
 6. `BLE_QIOT_EVENT_BUF_SIZE`配置为`BLE_QIOT_EVENT_MAX_SIZE`和MTU的最小值。
+7. `BLE_QIOT_SUPPORT_OTA`功能宏配置为1使能OTA功能，配置为0关闭OTA功能。
+8. `BLE_QIOT_USER_DEVELOPER_VERSION`是设备版本信息，可以用作升级前的版本号比较，务必与物联网开发平台填写保持一致。
+9. `BLE_QIOT_SUPPORT_RESUMING`配置为1使能断点续传功能，用户可以根据需要选择是否支持断点续传功能。若支持断点续传功能，则`BLE_QIOT_OTA_INFO_FLASH_ADDR`宏需要配置，用来存储断点续传信息。
+10. `BLE_QIOT_TOTAL_PACKAGES`表示小程序最大连续下发数据包的数量，最大值为0xFF。`BLE_QIOT_PACKAGE_LENGTH`表示单个数据包中OTA数据的长度，不能超过` ble_get_user_data_mtu_size()` - 3，其中3表示OTA数据包头。`BLE_QIOT_RETRY_TIMEOUT`表示设备端收到连续两个数据包的最大间隔，超出此时间表示数据传输超时，设备会主动请求小程序进行数据重传。`BLE_QIOT_PACKAGE_INTERVAL`表示小程序发送连续两个数据包的间隔。`BLE_QIOT_REBOOT_TIME`表示设备OTA文件传输结束后小程序等待设备升级的最大时常，超出此时间没有进行版本上报认为升级失败。这些配置用户可以自行组合，以寻求在不同的蓝牙协议栈上最佳的升级体验。
+11. `BLE_QIOT_OTA_BUF_SIZE`是OTA数据设备端缓冲区的大小，为了减少写FLASH的次数和提升速度，`LLSync`在收到一定数量内容后才进行一次写操作，建议配置为FLASH单个PAGE的大小。
+
 ## 3.2 例程代码抽取
 
 SDK 已经适配了多个硬件平台，例程代码存储在`samples/nrf52832`目录下。开发者可以通过脚本将指定硬件平台的例程抽取出来，将抽取后的代码加入硬件平台进行编译。以`nordic 52832`示例：
@@ -113,8 +123,10 @@ extract code success
 |  9   | ble_get_qiot_services      |              获取需要加入协议栈的蓝牙服务                    |
 |  10  |   ble_gap_connect_cb       |                 蓝牙设备连接时调用此接口通知SDK              |
 |  11  | ble_gap_disconnect_cb      |              蓝牙设备断开连接时调用此接口通知SDK              |
+|  12  | ble_ota_write_cb           |           UUID FFE4数据到达后调用此接口传入数据              |
+|  13  | ble_ota_callback_reg       |           注册OTA功能回调函数              |
 
 # 4 LLSync 协议
 
-请参见[LLSync蓝牙设备接入协议](./LLSync蓝牙设备接入协议1.2.0.pdf)
+请参见[LLSync蓝牙设备接入协议](./LLSync蓝牙设备接入协议1.3.0.pdf)
 

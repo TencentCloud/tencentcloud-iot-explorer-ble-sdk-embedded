@@ -3,12 +3,14 @@ if (CONFIG_QCLOUD_LLSYNC_SUPPORT)
             src/core/ble_qiot_llsync_data.c
             src/core/ble_qiot_llsync_device.c
             src/core/ble_qiot_llsync_event.c
+            src/core/ble_qiot_llsync_ota.c
             src/core/ble_qiot_service.c
             src/utils/ble_qiot_utils_base64.c
             src/utils/ble_qiot_utils_hmac.c
             src/utils/ble_qiot_utils_log.c
             src/utils/ble_qiot_utils_md5.c
-            src/utils/ble_qiot_utils_sha1.c)
+            src/utils/ble_qiot_utils_sha1.c
+            src/utils/ble_qiot_utils_crc.c)
 
     list(APPEND srcs
             date_template/ble_qiot_template.c)
@@ -25,4 +27,4 @@ endif ()
 idf_component_register(SRCS "${srcs}"
         INCLUDE_DIRS "${includes}"
         PRIV_INCLUDE_DIRS "${priv_includes}"
-        REQUIRES bt)
+        REQUIRES bt app_update)

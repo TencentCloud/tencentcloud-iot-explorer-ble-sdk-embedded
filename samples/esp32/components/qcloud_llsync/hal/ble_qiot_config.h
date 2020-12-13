@@ -22,7 +22,7 @@ extern "C" {
 
 #include "esp_log.h"
 
-#define BLE_QIOT_SDK_VERSION "1.2.0"  // sdk version
+#define BLE_QIOT_SDK_VERSION "1.3.0"  // sdk version
 #define BLE_QIOT_SDK_DEBUG   0        // sdk debug switch
 
 // the device broadcast is controlled by the user, but we provide a mechanism to help the device save more power.
@@ -54,7 +54,7 @@ extern "C" {
 // timestamp
 #define BLE_QIOT_LOG_PRINT(...) printf(__VA_ARGS__)
 
-// nrf52832xxAA Flash size is 512KB, nrf52832xxAB Flash size is 512KB, be carefol of the address!
+// nrf52832xxAA Flash size is 512KB, nrf52832xxAB Flash size is 512KB, be care of the address!
 #define BLE_QIOT_RECORD_FLASH_ADDR     0xFE000  // qiot data storage address
 #define BLE_QIOT_RECORD_FLASH_PAGESIZE 4096     // flash page size, see chip datasheet
 
@@ -64,6 +64,32 @@ extern "C" {
 #define BLE_QIOT_EVENT_MAX_SIZE (128)
 // the minimum between BLE_QIOT_EVENT_MAX_SIZE and mtu
 #define BLE_QIOT_EVENT_BUF_SIZE (23)
+
+// define user develop version, pick from "a-zA-Z0-9.-_" and length limits 1～32 bytes.
+// must be consistent with the firmware version that user write in the iot-explorer console
+// refer https://cloud.tencent.com/document/product/1081/40296
+#define BLE_QIOT_USER_DEVELOPER_VERSION "0.0.4"
+
+#define BLE_QIOT_SUPPORT_OTA 1  // 1 is support ota, others not
+#if (1 == BLE_QIOT_SUPPORT_OTA)
+#define BLE_QIOT_SUPPORT_RESUMING 1  // 1 is support resuming, others not
+#if (1 == BLE_QIOT_SUPPORT_RESUMING)
+// storage ota info in the flash if support resuming ota file
+#define BLE_QIOT_OTA_INFO_FLASH_ADDR (BLE_QIOT_RECORD_FLASH_ADDR + 0x1000)
+#endif
+
+#define BLE_QIOT_TOTAL_PACKAGES 0xFF  // the total package numbers in a loop
+#define BLE_QIOT_PACKAGE_LENGTH 0x10  // the user data length in package, ble_get_user_data_mtu_size() - 3 is the max
+#define BLE_QIOT_RETRY_TIMEOUT  2     // the max interval between two packages, unit: second
+// the time spent for device reboot, the server waiting the device version reported after upgrade. unit: second
+#define BLE_QIOT_REBOOT_TIME      20
+#define BLE_QIOT_PACKAGE_INTERVAL 0x05  // the interval between two packages send by the server
+// the package from the server will storage in the buffer, write the buffer to the flash at one time when the buffer
+// overflow. reduce the flash write can speed up file download, we suggest the BLE_QIOT_OTA_BUF_SIZE is multiples
+// of BLE_QIOT_PACKAGE_LENGTH and equal flash page size
+#define BLE_QIOT_OTA_BUF_SIZE (4096)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

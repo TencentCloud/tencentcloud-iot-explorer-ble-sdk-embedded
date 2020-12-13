@@ -25,7 +25,7 @@ extern "C" {
 #define LLSYNC_BIND_STATE_MASK       0x03
 #define LLSYNC_PROTOCOL_VERSION_MASK 0xF0
 
-#define BLE_QIOT_LLSYNC_PROTOCOL_VERSION (1)  // llsync protocol version, equal or less than 15
+#define BLE_QIOT_LLSYNC_PROTOCOL_VERSION (2)  // llsync protocol version, equal or less than 15
 
 #define BLE_LOCAL_PSK_LEN           4
 #define BLE_BIND_IDENTIFY_STR_LEN   8

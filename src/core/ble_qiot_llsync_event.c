@@ -47,15 +47,17 @@ ble_qiot_ret_status_t ble_event_report_property(void)
 
 ble_qiot_ret_status_t ble_event_report_device_info(void)
 {
-    char     device_info[3] = {0};
+    char     device_info[4] = {0};
     uint16_t mtu_size       = 0;
+    char *   p              = BLE_QIOT_USER_DEVELOPER_VERSION;
 
     mtu_size       = ble_get_user_data_mtu_size();
     mtu_size       = HTONS(mtu_size);
     device_info[0] = BLE_QIOT_LLSYNC_PROTOCOL_VERSION;
     memcpy(&device_info[1], &mtu_size, sizeof(mtu_size));
+    device_info[3] = strlen(p);
 
-    return ble_event_notify(BLE_QIOT_EVENT_UP_REPORT_MTU, NULL, 0, (const char *)device_info, sizeof(device_info));
+    return ble_event_notify(BLE_QIOT_EVENT_UP_REPORT_MTU, (uint8_t *)device_info, sizeof(device_info), p, strlen(p));
 }
 
 ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t header_len, const char *buf,
@@ -80,7 +82,7 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
     mtu_size = ble_get_user_data_mtu_size();
     mtu_size = mtu_size > sizeof(send_buf) ? sizeof(send_buf) : mtu_size;
     mtu_size -= (BLE_QIOT_EVENT_FIXED_HEADER_LEN + header_len);
-    ble_qiot_log_d("mtu size %d", mtu_size);
+    // ble_qiot_log_d("mtu size %d", mtu_size);
 
     p        = (char *)buf;
     left_len = buf_len;
