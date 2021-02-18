@@ -20,15 +20,15 @@ extern "C" {
 #include <stdio.h>
 #include <stdint.h>
 
-#define BLE_QIOT_SDK_VERSION "1.2.0"  // sdk version
-#define BLE_QIOT_SDK_DEBUG   0        // sdk debug switch
+#define BLE_QIOT_SDK_VERSION "1.4.0"  // sdk version
+#define BLE_QIOT_SDK_DEBUG   0        // sdk debug
 
 // the device broadcast is controlled by the user, but we provide a mechanism to help the device save more power.
 // if you want broadcast is triggered by something like press a button instead of all the time, and the broadcast
 // stopped automatically in a few minutes if the device is not bind, define BLE_QIOT_BUTTON_BROADCAST is 1 and
 // BLE_QIOT_BIND_TIMEOUT is the period that broadcast stopped.
 // if the device in the bound state, broadcast dose not stop automatically.
-#define BLE_QIOT_BUTTON_BROADCAST 1
+#define BLE_QIOT_BUTTON_BROADCAST 0
 #if (1 == BLE_QIOT_BUTTON_BROADCAST)
 #define BLE_QIOT_BIND_TIMEOUT (2 * 60 * 1000)  // unit: ms
 #endif
@@ -40,7 +40,6 @@ extern "C" {
 
 // in some BLE stack ble_qiot_log_hex() maybe not work, user can use there own hexdump function
 #define BLE_QIOT_USER_DEFINE_HEDUMP 0
-
 #if (1 == BLE_QIOT_USER_DEFINE_HEDUMP)
 // add your code here like this
 // #define ble_qiot_log_hex(level, hex_name, data, data_len) \
@@ -60,19 +59,23 @@ extern "C" {
 // some sdk info needs to stored on the device and the address is up to you
 #define BLE_QIOT_RECORD_FLASH_ADDR 0x3f000
 
-// the following definition will affect the stack that LLSync used，the minimum value tested is
-// 2048（BLE_QIOT_EVENT_MAX_SIZE is 128, BLE_QIOT_EVENT_BUF_SIZE is 23 ） the max length that llsync event data, depends
-// on the length of user data reported to Tencent Lianlian at a time
+// the following definition will affect the stack that LLSync used，the minimum value tested is 2048 bytes
+// the max length of llsync event data, depends on the length of user data reported to Tencent Lianlian at a time
 #define BLE_QIOT_EVENT_MAX_SIZE (128)
 // the minimum between BLE_QIOT_EVENT_MAX_SIZE and mtu
 #define BLE_QIOT_EVENT_BUF_SIZE (23)
 
-#define BLE_QIOT_SUPPORT_OTA 1  // 1 is support ota, others not
-#ifdef BLE_QIOT_SUPPORT_OTA
+// in some BLE stack the default ATT_MTU is 23, set BLE_QIOT_REMOTE_SET_MTU is 1 if you want to reset the mtu by the
+// Tencent Lianlian. Tencent Lianlian will set the mtu get from function ble_get_user_data_mtu_size()
+#define BLE_QIOT_REMOTE_SET_MTU (1)
+
 // define user develop version, pick from "a-zA-Z0-9.-_" and length limits 1～32 bytes.
 // must be consistent with the firmware version that user write in the iot-explorer console
 // refer https://cloud.tencent.com/document/product/1081/40296
 #define BLE_QIOT_USER_DEVELOPER_VERSION "0.0.1"
+
+#define BLE_QIOT_SUPPORT_OTA 0  // 1 is support ota, others not
+#ifdef BLE_QIOT_SUPPORT_OTA
 
 #define BLE_QIOT_SUPPORT_RESUMING 1  // 1 is support resuming, others not
 #if (1 == BLE_QIOT_SUPPORT_RESUMING)
@@ -81,7 +84,7 @@ extern "C" {
 #endif
 
 #define BLE_QIOT_TOTAL_PACKAGES 0xFF  // the total package numbers in a loop
-#define BLE_QIOT_PACKAGE_LENGTH 0x10  // the user data length in package, ble_get_user_data_mtu_size() - 3 is the max
+#define BLE_QIOT_PACKAGE_LENGTH 0x10  // the user data length in package, ATT MTU - 3 - 3 is the max
 #define BLE_QIOT_RETRY_TIMEOUT  2     // the max interval between two packages, unit: second
 // the time spent for device reboot, the server waiting the device version reported after upgrade. unit: second
 #define BLE_QIOT_REBOOT_TIME      20

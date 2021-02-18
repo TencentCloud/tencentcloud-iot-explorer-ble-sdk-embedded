@@ -22,7 +22,7 @@ extern "C" {
 
 #include "esp_log.h"
 
-#define BLE_QIOT_SDK_VERSION "1.3.0"  // sdk version
+#define BLE_QIOT_SDK_VERSION "1.4.0"  // sdk version
 #define BLE_QIOT_SDK_DEBUG   0        // sdk debug switch
 
 // the device broadcast is controlled by the user, but we provide a mechanism to help the device save more power.
@@ -61,14 +61,17 @@ extern "C" {
 // the following definition will affect the stack that LLSync used，the minimum value tested is
 // 2048（BLE_QIOT_EVENT_MAX_SIZE is 128, BLE_QIOT_EVENT_BUF_SIZE is 23 ） the max length that llsync event data, depends
 // on the length of user data reported to Tencent Lianlian at a time
-#define BLE_QIOT_EVENT_MAX_SIZE (128)
+#define BLE_QIOT_EVENT_MAX_SIZE (1024)
 // the minimum between BLE_QIOT_EVENT_MAX_SIZE and mtu
-#define BLE_QIOT_EVENT_BUF_SIZE (23)
+#define BLE_QIOT_EVENT_BUF_SIZE (128)
+
+// set 1 if need the remote set mtu
+#define BLE_QIOT_REMOTE_SET_MTU (1)
 
 // define user develop version, pick from "a-zA-Z0-9.-_" and length limits 1～32 bytes.
 // must be consistent with the firmware version that user write in the iot-explorer console
 // refer https://cloud.tencent.com/document/product/1081/40296
-#define BLE_QIOT_USER_DEVELOPER_VERSION "0.0.1"
+#define BLE_QIOT_USER_DEVELOPER_VERSION "0.0.4"
 
 #define BLE_QIOT_SUPPORT_OTA 1  // 1 is support ota, others not
 #if (1 == BLE_QIOT_SUPPORT_OTA)
@@ -79,7 +82,7 @@ extern "C" {
 #endif
 
 #define BLE_QIOT_TOTAL_PACKAGES 0xFF  // the total package numbers in a loop
-#define BLE_QIOT_PACKAGE_LENGTH 0x10  // the user data length in package, ble_get_user_data_mtu_size() - 3 is the max
+#define BLE_QIOT_PACKAGE_LENGTH 0x70  // the user data length in package, ATT MTU - 3 - 3 is the max
 #define BLE_QIOT_RETRY_TIMEOUT  2     // the max interval between two packages, unit: second
 // the time spent for device reboot, the server waiting the device version reported after upgrade. unit: second
 #define BLE_QIOT_REBOOT_TIME      20

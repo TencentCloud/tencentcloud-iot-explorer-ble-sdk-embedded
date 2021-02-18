@@ -23,9 +23,16 @@ extern "C" {
 #include "ble_qiot_llsync_event.h"
 
 #define LLSYNC_BIND_STATE_MASK       0x03
+#define LLSYNC_PROTO_VER_BIT         0x04
 #define LLSYNC_PROTOCOL_VERSION_MASK 0xF0
+#define LLSYNC_MTU_SET_MASK          0x8000
+
+#define LLSYNC_MTU_SET_RESULT_ERR 0xFFFF  // some error when setting mtu
 
 #define BLE_QIOT_LLSYNC_PROTOCOL_VERSION (2)  // llsync protocol version, equal or less than 15
+
+#define ATT_DEFAULT_MTU                 23  // default att mtu
+#define ATT_MTU_TO_LLSYNC_MTU(_att_mtu) ((_att_mtu)-3)
 
 #define BLE_LOCAL_PSK_LEN           4
 #define BLE_BIND_IDENTIFY_STR_LEN   8
@@ -45,6 +52,7 @@ typedef enum {
     E_DEV_MSG_CONN_FAIL,
     E_DEV_MSG_UNBIND_SUCC,  // inform unbind result
     E_DEV_MSG_UNBIND_FAIL,
+    E_DEV_MSG_SET_MTU_RESULT,  // inform set mtu result
     E_DEV_MSG_MSG_BUTT,
 } e_dev_info_msg_type;
 
@@ -148,6 +156,16 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
 // get connect authcode, return authcode length;
 // out_buf length must greater than  SHA1_DIGEST_SIZE + BLE_UNBIND_RESPONSE_STR_LEN
 int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *out_buf, uint16_t buf_len);
+
+// inform device the result of mtu setting
+int ble_inform_mtu_result(const char *result, uint16_t data_len);
+
+// get llsync mtu
+uint16_t llsync_mtu_get(void);
+
+// update llsync mtu
+void llsync_mtu_update(uint16_t sync_mtu);
+
 #ifdef __cplusplus
 }
 #endif

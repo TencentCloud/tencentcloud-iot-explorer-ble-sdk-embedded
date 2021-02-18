@@ -83,6 +83,7 @@
 9. `BLE_QIOT_SUPPORT_RESUMING`配置为1使能断点续传功能，用户可以根据需要选择是否支持断点续传功能。若支持断点续传功能，则`BLE_QIOT_OTA_INFO_FLASH_ADDR`宏需要配置，用来存储断点续传信息。
 10. `BLE_QIOT_TOTAL_PACKAGES`表示小程序最大连续下发数据包的数量，最大值为0xFF。`BLE_QIOT_PACKAGE_LENGTH`表示单个数据包中OTA数据的长度，不能超过` ble_get_user_data_mtu_size()` - 3，其中3表示OTA数据包头。`BLE_QIOT_RETRY_TIMEOUT`表示设备端收到连续两个数据包的最大间隔，超出此时间表示数据传输超时，设备会主动请求小程序进行数据重传。`BLE_QIOT_PACKAGE_INTERVAL`表示小程序发送连续两个数据包的间隔。`BLE_QIOT_REBOOT_TIME`表示设备OTA文件传输结束后小程序等待设备升级的最大时常，超出此时间没有进行版本上报认为升级失败。这些配置用户可以自行组合，以寻求在不同的蓝牙协议栈上最佳的升级体验。
 11. `BLE_QIOT_OTA_BUF_SIZE`是OTA数据设备端缓冲区的大小，为了减少写FLASH的次数和提升速度，`LLSync`在收到一定数量内容后才进行一次写操作，建议配置为FLASH单个PAGE的大小。
+12. `BLE_QIOT_REMOTE_SET_MTU`配置为1使能腾讯连连小程序MTU设置功能，腾讯连连小程序会使用`ble_get_user_data_mtu_size()`接口的值重新设置`MTU`。配置为0时，腾讯连连小程序不设置`MTU`，直接使用`ble_get_user_data_mtu_size()`接口的值作为应用层分片大小。
 
 ## 3.2 例程代码抽取
 
@@ -125,8 +126,8 @@ extract code success
 |  11  | ble_gap_disconnect_cb      |              蓝牙设备断开连接时调用此接口通知SDK              |
 |  12  | ble_ota_write_cb           |           UUID FFE4数据到达后调用此接口传入数据              |
 |  13  | ble_ota_callback_reg       |           注册OTA功能回调函数              |
+|  14  | ble_event_sync_mtu         |           同步蓝牙MTU到腾讯连连小程序              |
 
 # 4 LLSync 协议
 
-请参见[LLSync蓝牙设备接入协议](./LLSync蓝牙设备接入协议1.3.0.pdf)
-
+请参见[LLSync蓝牙设备接入协议](./LLSync蓝牙设备接入协议1.4.0.pdf) 

@@ -407,6 +407,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             break;
         case ESP_GATTS_MTU_EVT:
             ESP_LOGI(LLSYNC_LOG_TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);
+            ble_event_sync_mtu(param->mtu.mtu);
             break;
         case ESP_GATTS_CONF_EVT:
             break;

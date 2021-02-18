@@ -108,10 +108,19 @@ ble_qiot_ret_status_t ble_event_report_property(void);
 
 /**
  * @brief  report mtu of the device to the server
- * @note   report mtu to the server for optimizing bandwidth usage. this mtu equals (ATT_MTU - 3)
+ * @note   report mtu to the server to set the mtu
  * @return BLE_QIOT_RS_OK is success, other is error
  */
 ble_qiot_ret_status_t ble_event_report_device_info(void);
+
+/**
+ * @brief  sync the device mtu to The Tencent Lianlian.
+ * @note   if BLE_QIOT_REMOTE_SET_MTU is 1, The Tencent Lianlian will set the mtu get from function
+ * ble_get_user_data_mtu_size(), but The Tencent Lianlian can not know the effective value even if the setting is
+ * successful, so llsync need sync the mtu again. The user call this function in the BLE mtu callback.
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_sync_mtu(uint16_t llsync_mtu);
 
 /**
  * @brief  post event to the server

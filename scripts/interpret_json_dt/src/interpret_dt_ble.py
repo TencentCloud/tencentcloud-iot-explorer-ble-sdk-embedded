@@ -128,54 +128,87 @@ def _dt_write_public_header(write_fd):
     pass
 
 
-def _dt_trans_property_json_to_h_file(write_fd, _proterty_data):
-    if _dt_not_exist(_proterty_data):
+def _dt_write_struct_to_h_file(write_fd, _property_data):
+    _dt_write_newline_to_file(write_fd, '\ntypedef struct{')
+    for member in _property_data[dt_config['JSON']['DEFINE']][dt_config['JSON']['SPECS']]:
+        if member['define']['type'] == 'bool':
+            _dt_write_newline_to_file(write_fd, '\tbool m_%s;' % member['id'])
+        elif member['define']['type'] == 'int':
+            _dt_write_newline_to_file(write_fd, '\tint32_t m_%s;' % member['id'])
+        elif member['define']['type'] == 'enum':
+            _dt_write_newline_to_file(write_fd, '\tuint16_t m_%s;' % member['id'])
+        elif member['define']['type'] == 'string':
+            _dt_write_newline_to_file(write_fd, '\tchar m_%s[BLE_QIOT_STRUCT_%s_PROPERTY_%s_LEN_MAX];' % (
+                member['id'], _property_data['id'].upper(), member['id'].upper()))
+        elif member['define']['type'] == 'float':
+            _dt_write_newline_to_file(write_fd, '\tfloat m_%s;' % member['id'])
+        elif member['define']['type'] == 'timestamp':
+            _dt_write_newline_to_file(write_fd, '\tuint32_t m_%s;' % member['id'])
+    _dt_write_newline_to_file(write_fd, '}struct_property_%s;' % _property_data['id'])
+
+
+def _dt_trans_property_json_to_h_file(write_fd, _property_data, prefix=''):
+    if _dt_not_exist(_property_data):
         return
 
-    _dt_write_macro_to_file(write_fd, 'INCLUDE_PROPERTY', '')
+    if (not prefix):
+        _dt_write_macro_to_file(write_fd, 'INCLUDE_PROPERTY', '')
     # all property id define, the tail of macro name corresponding to property id in json file
-    _dt_write_enum_to_file(write_fd, '// define property id', 'PROPERTY_ID', _dt_get_enum_list_from_ids(_proterty_data))
+    _dt_write_enum_to_file(write_fd, '// define property id', prefix + 'PROPERTY_ID',
+                           _dt_get_enum_list_from_ids(_property_data))
 
     # define property id values, including size, length, limit ...
-    for property_id in _proterty_data:
+    for property_id in _property_data:
         if property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['TYPE']] == dt_config['JSON']['ENUM']:
             enum_prefix, enum_val = _dt_get_enum_list_from_mapping(
                 property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['MAPPING']])
             _dt_write_enum_to_file(write_fd, '// define property %s enum' % property_id[dt_config['JSON']['ID']],
-                                   'PROPERTY_' + property_id[dt_config['JSON']['ID']], enum_prefix, enum_val)
+                                   prefix + 'PROPERTY_' + property_id[dt_config['JSON']['ID']], enum_prefix, enum_val)
         elif property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['TYPE']] == dt_config['JSON']['INT'] or \
             property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['TYPE']] == dt_config['JSON']['FLOAT']:
             _dt_write_newline_to_file(write_fd, '\n// define %s attributes' % property_id[dt_config['JSON']['ID']])
             for k, v in property_id[dt_config['JSON']['DEFINE']].items():
                 if v != '' and k != dt_config['JSON']['TYPE'] and k != dt_config['JSON']['UNIT']:
-                    _dt_write_macro_to_file(write_fd, 'PROPERTY_' + property_id[dt_config['JSON']['ID']] + '_' + k,
+                    _dt_write_macro_to_file(write_fd,
+                                            prefix + 'PROPERTY_' + property_id[dt_config['JSON']['ID']] + '_' + k,
                                             '(' + v + ')')
         elif property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['TYPE']] == dt_config['JSON']['STRING']:
             _dt_write_newline_to_file(write_fd, '\n// define %s length limit' % property_id[dt_config['JSON']['ID']])
             for k, v in property_id[dt_config['JSON']['DEFINE']].items():
                 if v != '' and k != dt_config['JSON']['TYPE']:
                     _dt_write_macro_to_file(write_fd,
-                                            'PROPERTY_' + property_id[dt_config['JSON']['ID']] + '_LEN_' + k,
+                                            prefix + 'PROPERTY_' + property_id[dt_config['JSON']['ID']] + '_LEN_' + k,
                                             '(' + v + ')')
+        elif property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['TYPE']] == dt_config['JSON']['STRUCT']:
+            for member in property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['SPECS']]:
+                member['define'] = member['dataType']
+
+            _dt_trans_property_json_to_h_file(write_fd,
+                                              property_id[dt_config['JSON']['DEFINE']][dt_config['JSON']['SPECS']],
+                                              'STRUCT_' + property_id[dt_config['JSON']['ID']] + '_')
+
+            _dt_write_struct_to_h_file(write_fd, property_id)
         else:
             pass
-    # define prototype of callback function
-    _dt_write_newline_to_file(write_fd, '\n// define property set handle return 0 if success, other is error\n'
-                                        '// sdk call the function that inform the server data to the device')
-    _dt_write_newline_to_file(write_fd, 'typedef int (*property_set_cb)(const char *data, uint16_t len);')
-    _dt_write_newline_to_file(write_fd,
-                              '\n// define property get handle. return the data length obtained, -1 is error, 0 is no data\n'
-                              '// sdk call the function fetch user data and send to the server, the data should wrapped by user '
-                              'adn skd just transmit')
-    _dt_write_newline_to_file(write_fd, 'typedef int (*property_get_cb)(char *buf, uint16_t buf_len);')
-    _dt_write_newline_to_file(write_fd,
-                              '\n// each property have a struct ble_property_t, make up a array named sg_ble_property_array')
-    _dt_write_newline_to_file(write_fd, 'typedef struct{'
-                                        '\n\tproperty_set_cb set_cb;\t//set callback'
-                                        '\n\tproperty_get_cb get_cb;\t//get callback'
-                                        '\n\tuint8_t authority;\t//property authority'
-                                        '\n\tuint8_t type;\t//data type'
-                                        '\n}ble_property_t;')
+
+    if (not prefix):
+        # define prototype of callback function
+        _dt_write_newline_to_file(write_fd, '\n// define property set handle return 0 if success, other is error\n'
+                                            '// sdk call the function that inform the server data to the device')
+        _dt_write_newline_to_file(write_fd, 'typedef int (*property_set_cb)(const char *data, uint16_t len);')
+        _dt_write_newline_to_file(write_fd,
+                                  '\n// define property get handle. return the data length obtained, -1 is error, 0 is no data\n'
+                                  '// sdk call the function fetch user data and send to the server, the data should wrapped by user '
+                                  'adn skd just transmit')
+        _dt_write_newline_to_file(write_fd, 'typedef int (*property_get_cb)(char *buf, uint16_t buf_len);')
+        _dt_write_newline_to_file(write_fd,
+                                  '\n// each property have a struct ble_property_t, make up a array named sg_ble_property_array')
+        _dt_write_newline_to_file(write_fd, 'typedef struct{'
+                                            '\n\tproperty_set_cb set_cb;\t//set callback'
+                                            '\n\tproperty_get_cb get_cb;\t//get callback'
+                                            '\n\tuint8_t authority;\t//property authority'
+                                            '\n\tuint8_t type;\t//data type'
+                                            '\n}ble_property_t;')
     pass
 
 
@@ -197,7 +230,7 @@ def _dt_trans_event_json_to_h_file(write_fd, _event_data):
             if param[dt_config['JSON']['DEFINE']][dt_config['JSON']['TYPE']] == dt_config['JSON']['ENUM']:
                 enum_prefix, enum_val = _dt_get_enum_list_from_mapping(param[dt_config['JSON']['DEFINE']]['mapping'])
                 _dt_write_enum_to_file(write_fd, '// define enum for param %s' % param[dt_config['JSON']['ID']],
-                                       'EVEMT_' + event.get(dt_config['JSON']['ID']) + '_' + param[
+                                       'EVENT_' + event.get(dt_config['JSON']['ID']) + '_' + param[
                                            dt_config['JSON']['ID']],
                                        enum_prefix, enum_val)
             elif param[dt_config['JSON']['DEFINE']][dt_config['JSON']['TYPE']] == dt_config['JSON']['INT'] or \
@@ -352,10 +385,10 @@ def _dt_generate_header_file(_json_data):
     _dt_write_newline_to_file(h_file, '#define ' + dt_config['FILE']['NAME_PREFIX'].upper() + '_H_')
     _dt_write_newline_to_file(h_file, '#ifdef __cplusplus\n' + 'extern "C"{\n#endif\n')
 
-    _dt_write_newline_to_file(h_file, '#include <stdint.h>\n')
+    _dt_write_newline_to_file(h_file, '#include <stdint.h>\n#include <stdbool.h>\n')
 
     _dt_write_public_header(h_file)
-    _dt_trans_property_json_to_h_file(h_file, _json_data.get(dt_config['JSON']['PROPERTY']))
+    _dt_trans_property_json_to_h_file(h_file, _json_data.get(dt_config['JSON']['PROPERTY']), '')
     _dt_trans_event_json_to_h_file(h_file, _json_data.get(dt_config['JSON']['EVENT']))
     _dt_trans_action_json_to_h_file(h_file, _json_data.get(dt_config['JSON']['ACTION']))
     _dt_write_function_prototype(h_file)
@@ -398,6 +431,8 @@ def _dt_get_type_by_str(type_str):
         return 'BLE_QIOT_DATA_TYPE_ENUM'
     elif type_str == dt_config['JSON']['TIME']:
         return 'BLE_QIOT_DATA_TYPE_TIME'
+    elif type_str == dt_config['JSON']['STRUCT']:
+        return 'BLE_QIOT_DATA_TYPE_STRUCT'
     else:
         print('invalid type string')
     pass
@@ -416,6 +451,8 @@ def _dt_get_ret_val_by_type(data_type):
         return 'sizeof(float)'
     elif data_type == dt_config['JSON']['TIME']:
         return 'sizeof(uint32_t)'
+    elif data_type == dt_config['JSON']['STRUCT']:
+        return 'buf_len'
     else:
         print('invalid data type')
 
@@ -424,28 +461,67 @@ def _dt_get_function_param_by_type(data_type):
     return '(char *data, uint16_t buf_len)'
 
 
-def _dt_trans_property_json_to_c_file(write_fd, _proterty_data):
-    if _dt_not_exist(_proterty_data):
+def _dt_write_property_get_function(id):
+    return 'static int ' + _dt_set_property_function_name(id) + '(const char *data, uint16_t len)\n{\n\treturn 0;\n}\n'
+
+
+def _dt_write_property_set_function(id, type):
+    return 'static int ' + _dt_get_property_function_name(id) + '%s\n{\n\treturn %s;\n}\n' % (
+        _dt_get_function_param_by_type(type), _dt_get_ret_val_by_type(type))
+
+
+def _dt_write_struct_function(write_fd, _property_data):
+    for property_id in _property_data['define']['specs']:
+        _id = _property_data['id'] + '_' + property_id['id']
+        _dt_write_newline_to_file(write_fd, _dt_write_property_get_function(_id))
+        _dt_write_newline_to_file(write_fd, _dt_write_property_set_function(_id, property_id['define']['type']))
+
+    # define property array
+    _dt_write_newline_to_file(write_fd,
+                              "static ble_property_t sg_ble_{0}_property_array[BLE_QIOT_STRUCT_{1}_PROPERTY_ID_BUTT] = {{".format(
+                                  _property_data['id'], _property_data['id'].upper()))
+    for property_id in _property_data['define']['specs']:
+        _id = _property_data['id'] + '_' + property_id['id']
+        _dt_write_newline_to_file(write_fd, '\t{%-30s %-30s %-20s %-20s},' %
+                                  (_dt_set_property_function_name(_id) + ',',
+                                   _dt_get_property_function_name(_id) + ',',
+                                   _dt_get_property_mode(_property_data['mode']) + ',',
+                                   _dt_get_type_by_str(property_id['define']['type']))
+                                  )
+    _dt_write_newline_to_file(write_fd, '};\n')
+
+    _body = 'return ble_user_property_struct_handle(data, len, sg_ble_{}_property_array, BLE_QIOT_STRUCT_{}_PROPERTY_ID_BUTT);'.format(
+        _property_data['id'], _property_data['id'].upper())
+    _dt_write_newline_to_file(write_fd, 'static int ' + _dt_set_property_function_name(
+        _property_data['id']) + '(const char *data, uint16_t len)\n{\n\t%s\n}\n' % (_body))
+
+    _body = 'return ble_user_property_struct_get_data(data, len, sg_ble_{}_property_array, BLE_QIOT_STRUCT_{}_PROPERTY_ID_BUTT);'.format(
+        _property_data['id'], _property_data['id'].upper())
+    _dt_write_newline_to_file(write_fd, 'static int ' + _dt_get_property_function_name(
+        _property_data['id']) + '(char *data, uint16_t len)\n{\n\t%s\n}\n' % (_body))
+
+    pass
+
+
+def _dt_trans_property_json_to_c_file(write_fd, _property_data):
+    if _dt_not_exist(_property_data):
         return
 
     # define property set/get function
-    for property_id in _proterty_data:
-        _dt_write_newline_to_file(write_fd,
-                                  'static int ' + _dt_set_property_function_name(
-                                      property_id.get(dt_config['JSON']['ID'])) +
-                                  '(const char *data, uint16_t len)\n{\n\treturn 0;\n}\n')
-        _dt_write_newline_to_file(write_fd,
-                                  'static int ' + _dt_get_property_function_name(
-                                      property_id.get(dt_config['JSON']['ID'])) +
-                                  '%s\n{\n\treturn %s;\n}\n' %
-                                  (_dt_get_function_param_by_type(
-                                      property_id.get(dt_config['JSON']['DEFINE']).get(dt_config['JSON']['TYPE'])),
-                                   _dt_get_ret_val_by_type(
-                                       property_id.get(dt_config['JSON']['DEFINE']).get(dt_config['JSON']['TYPE']))))
+    for property_id in _property_data:
+        if property_id.get(dt_config['JSON']['DEFINE']).get(dt_config['JSON']['TYPE']) != 'struct':
+            _dt_write_newline_to_file(write_fd,
+                                      _dt_write_property_get_function(property_id.get(dt_config['JSON']['ID'])))
+            _dt_write_newline_to_file(write_fd,
+                                      _dt_write_property_set_function(property_id.get(dt_config['JSON']['ID']),
+                                                                      property_id.get(dt_config['JSON']['DEFINE']).get(
+                                                                          dt_config['JSON']['TYPE'])))
+        else:
+            _dt_write_struct_function(write_fd, property_id)
 
     # define property array
     _dt_write_newline_to_file(write_fd, 'static ble_property_t sg_ble_property_array[BLE_QIOT_PROPERTY_ID_BUTT] = {')
-    for property_id in _proterty_data:
+    for property_id in _property_data:
         _dt_write_newline_to_file(write_fd, '\t{%-30s %-30s %-20s %-20s},' %
                                   (_dt_set_property_function_name(property_id.get(dt_config['JSON']['ID'])) + ',',
                                    _dt_get_property_function_name(property_id.get(dt_config['JSON']['ID'])) + ',',

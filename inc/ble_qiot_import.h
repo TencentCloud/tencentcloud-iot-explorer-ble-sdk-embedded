@@ -112,7 +112,7 @@ ble_qiot_ret_status_t ble_advertising_stop(void);
 ble_qiot_ret_status_t ble_send_notify(uint8_t *buf, uint8_t len);
 
 /**
- * @brief get the max size of data that user can used, normally is ATT_MTU - 3
+ * @brief get the ATT_MTU user want to used
  * @return the value
  */
 uint16_t ble_get_user_data_mtu_size(void);

@@ -36,15 +36,14 @@
 #include "ble_qiot_export.h"
 
 extern void          ble_qiot_service_init(void);
-extern float         sg_ch20_ppm;
 static TimerHandle_t ota_reboot_timer;
 
 static void test_task(void *pvParameters)
 {
     while (1) {
-        sg_ch20_ppm += 0.001;
-        printf("report ppm %.3f\n", sg_ch20_ppm);
-        ble_event_report_property();
+        // ble_event_report_property();
+        // ble_event_post(0);
+        //  ble_event_get_status();
         vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 }

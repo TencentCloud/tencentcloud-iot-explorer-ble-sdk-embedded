@@ -42,9 +42,9 @@ extern "C" {
 #define DEVICE_NAME "ble01"
 #define SECRET_KEY  "Kd1fkCPvaoYWShcsmpeS9g=="
 #else
-#define PRODUCT_ID  "13SJVR7LAS"
-#define DEVICE_NAME "ble02"
-#define SECRET_KEY  "jBP/gX0VwbNRj2JgRPWkgw=="
+#define PRODUCT_ID  "DHZX03IQAZ"
+#define DEVICE_NAME "test001"
+#define SECRET_KEY  "LvgDDBIoXibsQFq3OCPSXg=="
 #endif
 
 int ble_get_product_id(char *product_id)
@@ -142,11 +142,10 @@ ble_qiot_ret_status_t ble_timer_delete(ble_timer_t timer_id)
     return BLE_QIOT_RS_OK;
 }
 
-// should return ATT_MTU - 3
+// return ATT MTU
 uint16_t ble_get_user_data_mtu_size(void)
 {
-    // esp32 can not get mtu，use default mtu
-    return 20;
+    return 128;
 }
 
 uint8_t ble_ota_is_enable(const char *version)
