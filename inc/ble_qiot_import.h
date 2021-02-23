@@ -117,6 +117,25 @@ ble_qiot_ret_status_t ble_send_notify(uint8_t *buf, uint8_t len);
  */
 uint16_t ble_get_user_data_mtu_size(void);
 
+/**
+ * @brief secure binding user callback
+ * @note when the secure binding is activated, the function notify user the connecting is coming, the function is
+ * no-block
+ * @return None
+ */
+void ble_secure_bind_user_cb(void);
+
+enum {
+    BLE_SECURE_BIND_CANCEL  = 0,  // user cancel in Tencent Lianlian
+    BLE_SECURE_BIND_TIMEOUT = 1,  // the binding timeout
+};
+/**
+ * @brief secure binding user notify
+ * @note notify user when the secure bind timeout or cancel
+ * @return None
+ */
+void ble_secure_bind_user_notify(uint8_t result);
+
 enum {
     BLE_OTA_ENABLE              = 1,  // ota enable
     BLE_OTA_DISABLE_LOW_POWER   = 2,  // the device low power can not upgrade

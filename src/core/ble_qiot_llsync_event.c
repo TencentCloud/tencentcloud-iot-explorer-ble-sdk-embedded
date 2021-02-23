@@ -73,15 +73,22 @@ ble_qiot_ret_status_t ble_event_sync_mtu(uint16_t att_mtu)
 
     mtu_size = ATT_MTU_TO_LLSYNC_MTU(att_mtu);
     llsync_mtu_update(mtu_size);
-    mtu_size = NTOHS(mtu_size);
+    mtu_size = HTONS(mtu_size);
     return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_MTU, NULL, 0, &mtu_size, sizeof(uint16_t));
 }
 
-// llsync notify
-ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t header_len, const char *buf,
-                                       uint16_t buf_len)
+ble_qiot_ret_status_t ble_event_sync_wait_time(void)
 {
-    char *   p              = (char *)buf;
+    uint16_t time = BLE_QIOT_BIND_WAIT_TIME;
+
+    time = HTONS(time);
+    return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME, NULL, 0, &time, sizeof(uint16_t));
+}
+
+ble_qiot_ret_status_t ble_event_notify2(uint8_t type, uint8_t length_flag, uint8_t *header, uint8_t header_len,
+                                        const char *buf, uint16_t buf_len)
+{
+    char *   p              = buf;
     uint16_t left_len       = buf_len;
     uint16_t send_len       = 0;
     uint16_t mtu_size       = 0;
@@ -91,9 +98,9 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
 
     uint8_t send_buf[BLE_QIOT_EVENT_BUF_SIZE] = {0};
 
-    if (!llsync_is_connected() && (type != BLE_QIOT_EVENT_UP_BIND_SIGN_RET) &&
-        (type != BLE_QIOT_EVENT_UP_CONN_SIGN_RET) && (type != BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET)) {
-        ble_qiot_log_e("llsync not connected");
+    if (!llsync_is_connected() && type != BLE_QIOT_EVENT_UP_BIND_SIGN_RET && type != BLE_QIOT_EVENT_UP_CONN_SIGN_RET &&
+        type != BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET && type != BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME) {
+        ble_qiot_log_e("upload msg negate, device not connected");
         return BLE_QIOT_RS_ERR;
     }
 
@@ -133,6 +140,7 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
             }
             // the high 2 bits means slice state, and the left 14 bits is data length
             send_buf[1] |= slice_state << 6;
+            send_buf[1] |= length_flag;
         } else {
             send_len = send_buf_index;
         }
@@ -145,6 +153,12 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
     } while (left_len != 0);
 
     return BLE_QIOT_RS_OK;
+}
+
+ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t header_len, const char *buf,
+                                       uint16_t buf_len)
+{
+    return ble_event_notify2(type, 0, header, header_len, buf, buf_len);
 }
 
 ble_qiot_ret_status_t ble_event_post(uint8_t event_id)

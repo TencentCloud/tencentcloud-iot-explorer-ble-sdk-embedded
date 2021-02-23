@@ -22,7 +22,7 @@ extern "C" {
 
 #include "esp_log.h"
 
-#define BLE_QIOT_SDK_VERSION "1.4.0"  // sdk version
+#define BLE_QIOT_SDK_VERSION "1.4.1"  // sdk version
 #define BLE_QIOT_SDK_DEBUG   0        // sdk debug switch
 
 // the device broadcast is controlled by the user, but we provide a mechanism to help the device save more power.
@@ -68,6 +68,15 @@ extern "C" {
 // set 1 if need the remote set mtu
 #define BLE_QIOT_REMOTE_SET_MTU (1)
 
+// some users hope to confirm on the device before the binding, set BLE_QIOT_SECURE_BIND is 1 to enable the secure
+// binding. When the server is bound, the device callback ble_secure_bind_user_cb() will be triggered, the user agree
+// or refuse connect by ble_secure_bind_user_confirm(). If the device does not respond and the connection timeout, or
+// the user cancel the connection in Tencent Lianlian, a notify will received in function ble_secure_bind_user_notify().
+#define BLE_QIOT_SECURE_BIND 1
+#ifdef BLE_QIOT_SECURE_BIND
+#define BLE_QIOT_BIND_WAIT_TIME 60
+#endif
+
 // define user develop version, pick from "a-zA-Z0-9.-_" and length limits 1～32 bytes.
 // must be consistent with the firmware version that user write in the iot-explorer console
 // refer https://cloud.tencent.com/document/product/1081/40296
@@ -82,7 +91,7 @@ extern "C" {
 #endif
 
 #define BLE_QIOT_TOTAL_PACKAGES 0xFF  // the total package numbers in a loop
-#define BLE_QIOT_PACKAGE_LENGTH 0x70  // the user data length in package, ATT MTU - 3 - 3 is the max
+#define BLE_QIOT_PACKAGE_LENGTH 0x70  // the user data length in package, ble_get_user_data_mtu_size() - 3 is the max
 #define BLE_QIOT_RETRY_TIMEOUT  2     // the max interval between two packages, unit: second
 // the time spent for device reboot, the server waiting the device version reported after upgrade. unit: second
 #define BLE_QIOT_REBOOT_TIME      20

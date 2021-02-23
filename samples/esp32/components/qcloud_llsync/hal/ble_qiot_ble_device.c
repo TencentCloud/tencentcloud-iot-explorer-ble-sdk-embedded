@@ -42,9 +42,9 @@ extern "C" {
 #define DEVICE_NAME "ble01"
 #define SECRET_KEY  "Kd1fkCPvaoYWShcsmpeS9g=="
 #else
-#define PRODUCT_ID  "DHZX03IQAZ"
+#define PRODUCT_ID  "QWQPD30YJY"
 #define DEVICE_NAME "test001"
-#define SECRET_KEY  "LvgDDBIoXibsQFq3OCPSXg=="
+#define SECRET_KEY  "TiuidqC4KpX46kclS+6rTA=="
 #endif
 
 int ble_get_product_id(char *product_id)

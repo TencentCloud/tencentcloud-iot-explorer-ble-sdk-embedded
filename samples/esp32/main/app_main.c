@@ -43,9 +43,23 @@ static void test_task(void *pvParameters)
     while (1) {
         // ble_event_report_property();
         // ble_event_post(0);
-        //  ble_event_get_status();
+        // ble_event_get_status();
+        // ble_secure_bind_user_confirm(BLE_QIOT_SECURE_BIND_CONFIRM);
+        // ble_secure_bind_user_confirm(BLE_QIOT_SECURE_BIND_REJECT);
         vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
+}
+
+void ble_secure_bind_user_cb(void)
+{
+    printf("please choose connect?(Y/N)\r\n");
+    return;
+}
+
+void ble_secure_bind_user_notify(uint8_t result)
+{
+    printf("the binding canceled, result: %d\r\n", result);
+    return;
 }
 
 void ble_ota_start_cb(void)

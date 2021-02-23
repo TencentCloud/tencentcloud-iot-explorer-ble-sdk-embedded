@@ -78,6 +78,11 @@ typedef enum {
     BLE_QIOT_RS_VALID_SIGN_ERR = -4,
 } ble_qiot_ret_status_t;
 
+typedef enum {
+    BLE_QIOT_SECURE_BIND_CONFIRM = 0,
+    BLE_QIOT_SECURE_BIND_REJECT  = 1,
+} ble_qiot_secure_bind_t;
+
 /**
  * @brief get llsync services context
  *
@@ -121,6 +126,13 @@ ble_qiot_ret_status_t ble_event_report_device_info(void);
  * @return BLE_QIOT_RS_OK is success, other is error
  */
 ble_qiot_ret_status_t ble_event_sync_mtu(uint16_t llsync_mtu);
+
+/**
+ * @brief  user choose whether to connect
+ * @note   call the function when the user choose connect or not
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_secure_bind_user_confirm(ble_qiot_secure_bind_t choose);
 
 /**
  * @brief  post event to the server

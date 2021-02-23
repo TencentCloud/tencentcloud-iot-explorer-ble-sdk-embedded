@@ -53,6 +53,7 @@ typedef enum {
     E_DEV_MSG_UNBIND_SUCC,  // inform unbind result
     E_DEV_MSG_UNBIND_FAIL,
     E_DEV_MSG_SET_MTU_RESULT,  // inform set mtu result
+    E_DEV_MSG_BIND_TIMEOUT,    // inform bind timeout
     E_DEV_MSG_MSG_BUTT,
 } e_dev_info_msg_type;
 

@@ -35,6 +35,10 @@ static ble_event_slice_t sg_ble_slice_data;
 static ble_timer_t sg_bind_timer = NULL;
 #endif
 
+#if (1 == BLE_QIOT_SECURE_BIND)
+static ble_bind_data sg_bind_auth_data;
+#endif
+
 static qiot_service_init_s service_info = {
     .service_uuid16  = IOT_BLE_UUID_SERVICE,
     .service_uuid128 = IOT_BLE_UUID_BASE,
@@ -68,6 +72,34 @@ const qiot_service_init_s *ble_get_qiot_services(void)
 {
     return &service_info;
 }
+
+#if (1 == BLE_QIOT_SECURE_BIND)
+static ble_qiot_ret_status_t ble_secure_bind_handle(const char *data, uint16_t len)
+{
+    memset(&sg_bind_auth_data, 0, sizeof(ble_bind_data));
+    memcpy(&sg_bind_auth_data, data, sizeof(ble_bind_data));
+    ble_event_sync_wait_time();
+    ble_secure_bind_user_cb();
+
+    return BLE_QIOT_RS_OK;
+}
+
+ble_qiot_ret_status_t ble_secure_bind_user_confirm(ble_qiot_secure_bind_t choose)
+{
+    char    out_buf[80] = {0};
+    int     ret_len     = 0;
+    uint8_t flag        = 0;
+
+    ble_qiot_log_i("user choose: %d", choose);
+    ret_len = ble_bind_get_authcode(&sg_bind_auth_data, sizeof(ble_bind_data), out_buf, sizeof(out_buf));
+    if (ret_len <= 0) {
+        ble_qiot_log_e("get bind authcode failed");
+        return BLE_QIOT_RS_ERR;
+    }
+    flag = choose << 5;
+    return ble_event_notify2((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, flag, NULL, 0, out_buf, ret_len);
+}
+#endif
 
 #if (1 == BLE_QIOT_BUTTON_BROADCAST)
 static void ble_bind_timer_callback(void *param)
@@ -294,6 +326,9 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
     ch = p_data[0];
     switch (ch) {
         case E_DEV_MSG_SYNC_TIME:
+#if (1 == BLE_QIOT_SECURE_BIND)
+            ret = ble_secure_bind_handle(p_data + 3, p_data_len - 3);
+#else
             ret_len = ble_bind_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
             if (ret_len <= 0) {
                 ble_qiot_log_e("get bind authcode failed");
@@ -301,6 +336,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
                 break;
             }
             ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, NULL, 0, out_buf, ret_len);
+#endif
             break;
         case E_DEV_MSG_CONN_VALID:
             ret_len = ble_conn_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
@@ -354,6 +390,10 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
             break;
         case E_DEV_MSG_SET_MTU_RESULT:
             ble_inform_mtu_result(p_data + 1, p_data_len - 1);
+            break;
+        case E_DEV_MSG_BIND_TIMEOUT:
+            ble_qiot_log_i("get msg bind result: %d", p_data[1]);
+            ble_secure_bind_user_notify(p_data[1]);
             break;
         default:
             break;

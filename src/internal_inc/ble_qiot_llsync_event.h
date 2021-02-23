@@ -44,6 +44,11 @@ enum {
 ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t header_len, const char *buf,
                                        uint16_t buf_len);
 
+ble_qiot_ret_status_t ble_event_notify2(uint8_t type, uint8_t length_flag, uint8_t *header, uint8_t header_len,
+                                        const char *buf, uint16_t buf_len);
+
+ble_qiot_ret_status_t ble_event_sync_wait_time(void);
+
 #ifdef __cplusplus
 }
 #endif
