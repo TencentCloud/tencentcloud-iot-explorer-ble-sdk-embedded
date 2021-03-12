@@ -74,21 +74,23 @@ ble_qiot_ret_status_t ble_event_sync_mtu(uint16_t att_mtu)
     mtu_size = ATT_MTU_TO_LLSYNC_MTU(att_mtu);
     llsync_mtu_update(mtu_size);
     mtu_size = HTONS(mtu_size);
-    return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_MTU, NULL, 0, &mtu_size, sizeof(uint16_t));
+    return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_MTU, NULL, 0, (const char*)&mtu_size, sizeof(uint16_t));
 }
 
+#if (1 == BLE_QIOT_SECURE_BIND)
 ble_qiot_ret_status_t ble_event_sync_wait_time(void)
 {
     uint16_t time = BLE_QIOT_BIND_WAIT_TIME;
 
     time = HTONS(time);
-    return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME, NULL, 0, &time, sizeof(uint16_t));
+    return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME, NULL, 0, (const char*)&time, sizeof(uint16_t));
 }
+#endif
 
 ble_qiot_ret_status_t ble_event_notify2(uint8_t type, uint8_t length_flag, uint8_t *header, uint8_t header_len,
                                         const char *buf, uint16_t buf_len)
 {
-    char *   p              = buf;
+    char *   p              = (char *)buf;
     uint16_t left_len       = buf_len;
     uint16_t send_len       = 0;
     uint16_t mtu_size       = 0;

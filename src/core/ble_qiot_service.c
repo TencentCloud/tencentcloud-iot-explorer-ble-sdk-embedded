@@ -227,7 +227,9 @@ void ble_gap_disconnect_cb(void)
     llsync_mtu_update(0);
     llsync_connection_state_set(E_LLSYNC_DISCONNECTED);
     ble_connection_state_set(E_BLE_DISCONNECTED);
+#if (1 == BLE_QIOT_SUPPORT_OTA )
     ble_ota_stop();
+#endif
 }
 
 static uint8_t ble_msg_type_header_len(uint8_t type)
@@ -239,7 +241,7 @@ static uint8_t ble_msg_type_header_len(uint8_t type)
     }
 }
 
-static uint8_t ble_package_slice_data(uint8_t data_type, uint8_t flag, uint8_t header_len, const char *in_buf,
+static int8_t ble_package_slice_data(uint8_t data_type, uint8_t flag, uint8_t header_len, const char *in_buf,
                                       int in_len)
 {
     if (!BLE_QIOT_IS_SLICE_HEADER(flag)) {
@@ -393,7 +395,9 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
             break;
         case E_DEV_MSG_BIND_TIMEOUT:
             ble_qiot_log_i("get msg bind result: %d", p_data[1]);
+        #if (1 == BLE_QIOT_SECURE_BIND)
             ble_secure_bind_user_notify(p_data[1]);
+        #endif
             break;
         default:
             break;

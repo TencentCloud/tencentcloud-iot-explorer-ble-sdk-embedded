@@ -1,14 +1,14 @@
 /*
- * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in
- * compliance with the License. You may obtain a copy of the License at
- * http://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is
- * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+* Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in
+* compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is
+* distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+* either express or implied. See the License for the specific language governing permissions and
+* limitations under the License.
+*
+*/
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,6 +16,7 @@ extern "C" {
 #include "ble_qiot_template.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "ble_qiot_export.h"
@@ -242,6 +243,81 @@ int ble_user_property_report_reply_handle(uint8_t result)
     }
 
     return BLE_QIOT_RS_OK;
+}
+
+int ble_user_property_struct_handle(const char *in_buf, uint16_t buf_len, ble_property_t struct_arr[], uint8_t arr_size)
+{
+    uint16_t              parse_len = 0;
+    uint16_t              ret_len   = 0;
+    e_ble_tlv             tlv;
+
+    while (parse_len < buf_len) {
+        memset(&tlv, 0, sizeof(e_ble_tlv));
+        ret_len = ble_lldata_parse_tlv(in_buf + parse_len, buf_len - parse_len, &tlv);
+        parse_len += ret_len;
+        if (parse_len > buf_len) {
+            ble_qiot_log_e("parse struct failed");
+            return parse_len;
+        }
+
+        if (tlv.id >= arr_size){
+            ble_qiot_log_e("invalid array index %d", tlv.id);
+            return parse_len;
+        }
+        if (NULL == struct_arr[tlv.id].set_cb){
+            ble_qiot_log_e("invalid member id %d", tlv.id);
+            return parse_len;
+        }
+        if (BLE_QIOT_RS_OK != struct_arr[tlv.id].set_cb(tlv.val, tlv.len)) {
+            ble_qiot_log_e("user handle property error, member id %d, type %d, len %d", tlv.id, tlv.type, tlv.len);
+            return parse_len;
+        }
+    }
+
+    return 0;
+}
+
+int ble_user_property_struct_get_data(char *in_buf, uint16_t buf_len, ble_property_t struct_arr[], uint8_t arr_size)
+{
+    uint8_t  property_id                       = 0;
+    uint8_t  property_type                     = 0;
+    int      property_len                      = 0;
+    char     *data_buf                         = in_buf;
+    uint16_t data_len                          = 0;
+    uint16_t string_len                        = 0;
+
+    for (property_id = 0; property_id < arr_size; property_id++) {
+        property_type = struct_arr[property_id].type;
+        if (property_type >= BLE_QIOT_DATA_TYPE_BUTT) {
+            ble_qiot_log_e("member id %d type %d invalid", property_id, property_type);
+            return BLE_QIOT_RS_ERR;
+        }
+        data_buf[data_len++] = BLE_QIOT_PACKAGE_TLV_HEAD(property_type, property_id);
+        if (BLE_QIOT_DATA_TYPE_STRING == property_type) {
+            // reserved 2 bytes for string length
+            property_len = struct_arr[property_id].get_cb((char *)data_buf + data_len + 2, buf_len - data_len - 2);
+        } else {
+            property_len = struct_arr[property_id].get_cb((char *)data_buf + data_len, buf_len - data_len);
+        }
+        if (property_len < 0) {
+            ble_qiot_log_e("too long data, member id %d, data length %d", property_id, data_len);
+            return BLE_QIOT_RS_ERR;
+        } else if (property_len == 0) {
+            // no data to post
+            data_len--;
+            data_buf[data_len] = '0';
+            ble_qiot_log_d("member id %d no data to post", property_id);
+        } else {
+            if (BLE_QIOT_DATA_TYPE_STRING == property_type) {
+                string_len = HTONS(property_len);
+                memcpy(data_buf + data_len, &string_len, sizeof(uint16_t));
+                data_len += sizeof(uint16_t);
+            }
+            data_len += property_len;
+        }
+    }
+
+    return data_len;
 }
 
 static int ble_event_get_status_report_status(char *buf, uint16_t buf_len)
@@ -529,6 +605,7 @@ int ble_action_user_handle_output_param(uint8_t action_id, uint8_t output_id, ch
         }
     }
 }
+
 
 #ifdef __cplusplus
 }
