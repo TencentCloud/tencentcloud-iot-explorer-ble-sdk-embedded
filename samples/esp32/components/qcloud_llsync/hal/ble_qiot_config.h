@@ -72,7 +72,7 @@ extern "C" {
 // binding. When the server is bound, the device callback ble_secure_bind_user_cb() will be triggered, the user agree
 // or refuse connect by ble_secure_bind_user_confirm(). If the device does not respond and the connection timeout, or
 // the user cancel the connection in Tencent Lianlian, a notify will received in function ble_secure_bind_user_notify().
-#define BLE_QIOT_SECURE_BIND 1
+#define BLE_QIOT_SECURE_BIND 0
 #ifdef BLE_QIOT_SECURE_BIND
 #define BLE_QIOT_BIND_WAIT_TIME 60
 #endif
