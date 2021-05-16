@@ -54,6 +54,12 @@ typedef enum {
     E_DEV_MSG_UNBIND_FAIL,
     E_DEV_MSG_SET_MTU_RESULT,  // inform set mtu result
     E_DEV_MSG_BIND_TIMEOUT,    // inform bind timeout
+    E_DEV_MSG_GET_DEV_INFO = 0xE0,  // configure network start
+    E_DEV_MSG_SET_WIFI_MODE,
+    E_DEV_MSG_SET_WIFI_INFO,
+    E_DEV_MSG_SET_WIFI_CONNECT,
+    E_DEV_MSG_SET_WIFI_TOKEN,
+    E_DEV_MSG_GET_DEV_LOG,
     E_DEV_MSG_MSG_BUTT,
 } e_dev_info_msg_type;
 
@@ -122,14 +128,8 @@ e_llsync_bind_state llsync_bind_state_get(void);
 // set llsync connection state
 void llsync_connection_state_set(e_llsync_connection_state new_state);
 
-// get llsync connection state
-e_llsync_connection_state llsync_connection_state_get(void);
-
 // set ble connection state
 void ble_connection_state_set(e_ble_connection_state new_state);
-
-// get ble connection state
-e_ble_connection_state ble_connection_state_get(void);
 
 // get llsync connection state
 bool llsync_is_connected(void);

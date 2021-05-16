@@ -29,7 +29,7 @@ void ble_qiot_set_log_level(e_ble_qiot_log_level level)
     return;
 }
 
-#if (0 == BLE_QIOT_USER_DEFINE_HEDUMP)
+#if !BLE_QIOT_USER_DEFINE_HEXDUMP
 void ble_qiot_log_hex(e_ble_qiot_log_level level, const char *hex_name, const char *data, uint32_t data_len)
 {
     char buf[HEX_DUMP_BYTE_PER_LINE * 5] = {0};
@@ -76,7 +76,7 @@ void ble_qiot_log_hex(e_ble_qiot_log_level level, const char *hex_name, const ch
     }
     ble_qiot_log_raw("\r\n");
 }
-#endif  // BLE_QIOT_USER_DEFINE_HEDUMP
+#endif  // BLE_QIOT_USER_DEFINE_HEXDUMP
 
 #ifdef __cplusplus
 }

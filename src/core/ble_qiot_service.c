@@ -13,9 +13,9 @@
 extern "C" {
 #endif
 
-#include "ble_qiot_service.h"
-
 #include <stdio.h>
+
+#include "ble_qiot_config.h"
 
 #include "ble_qiot_export.h"
 #include "ble_qiot_import.h"
@@ -27,17 +27,18 @@ extern "C" {
 #include "ble_qiot_param_check.h"
 #include "ble_qiot_service.h"
 #include "ble_qiot_template.h"
+#include "ble_qiot_service.h"
 
 // llsync support data fragment, so we need to package all the data before parsing if the data is slice
 static ble_event_slice_t sg_ble_slice_data;
 
-#if (1 == BLE_QIOT_BUTTON_BROADCAST)
+#if BLE_QIOT_BUTTON_BROADCAST
 static ble_timer_t sg_bind_timer = NULL;
-#endif
+#endif //BLE_QIOT_BUTTON_BROADCAST
 
-#if (1 == BLE_QIOT_SECURE_BIND)
+#if BLE_QIOT_SECURE_BIND
 static ble_bind_data sg_bind_auth_data;
-#endif
+#endif //BLE_QIOT_SECURE_BIND
 
 static qiot_service_init_s service_info = {
     .service_uuid16  = IOT_BLE_UUID_SERVICE,
@@ -48,24 +49,26 @@ static qiot_service_init_s service_info = {
             .gatt_char_props = GATT_CHAR_WRITE,
             .on_write        = ble_device_info_write_cb,
         },
-    .data =
-        {
-            .uuid16          = IOT_BLE_UUID_DATA,
-            .gatt_char_props = GATT_CHAR_WRITE,
-            .on_write        = ble_lldata_write_cb,
-        },
     .event =
         {
             .uuid16          = IOT_BLE_UUID_EVENT,
             .gatt_char_props = GATT_CHAR_NOTIFY,
             .on_write        = NULL,
         },
-    .ota =
+#if BLE_QIOT_LLSYNC_STANDARD
+    .data =
         {
-            .uuid16          = IOT_BLE_UUID_OTA,
-            .gatt_char_props = GATT_CHAR_WRITE_WO_RESP,
-            .on_write        = ble_ota_write_cb,
+            .uuid16          = IOT_BLE_UUID_DATA,
+            .gatt_char_props = GATT_CHAR_WRITE,
+            .on_write        = ble_lldata_write_cb,
         },
+    .ota =
+    {
+        .uuid16          = IOT_BLE_UUID_OTA,
+        .gatt_char_props = GATT_CHAR_WRITE_WO_RESP,
+        .on_write        = ble_ota_write_cb,
+    },
+#endif //BLE_QIOT_LLSYNC_STANDARD
 };
 
 const qiot_service_init_s *ble_get_qiot_services(void)
@@ -73,7 +76,9 @@ const qiot_service_init_s *ble_get_qiot_services(void)
     return &service_info;
 }
 
-#if (1 == BLE_QIOT_SECURE_BIND)
+#if BLE_QIOT_LLSYNC_STANDARD
+
+#if BLE_QIOT_SECURE_BIND
 static ble_qiot_ret_status_t ble_secure_bind_handle(const char *data, uint16_t len)
 {
     memset(&sg_bind_auth_data, 0, sizeof(ble_bind_data));
@@ -99,9 +104,21 @@ ble_qiot_ret_status_t ble_secure_bind_user_confirm(ble_qiot_secure_bind_t choose
     flag = choose << 5;
     return ble_event_notify2((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, flag, NULL, 0, out_buf, ret_len);
 }
-#endif
+#endif //BLE_QIOT_SECURE_BIND
 
-#if (1 == BLE_QIOT_BUTTON_BROADCAST)
+void ble_lldata_write_cb(const uint8_t *buf, uint16_t len)
+{
+    (void)ble_lldata_msg_handle((const char *)buf, len);
+}
+
+void ble_ota_write_cb(const uint8_t *buf, uint16_t len)
+{
+    (void)ble_ota_msg_handle((const char *)buf, len);
+}
+
+#endif //BLE_QIOT_LLSYNC_STANDARD
+
+#if BLE_QIOT_BUTTON_BROADCAST
 static void ble_bind_timer_callback(void *param)
 {
     ble_qiot_log_i("timer timeout");
@@ -111,7 +128,7 @@ static void ble_bind_timer_callback(void *param)
         ble_qiot_log_i("stop advertising");
     }
 }
-#endif
+#endif //BLE_QIOT_BUTTON_BROADCAST
 
 ble_qiot_ret_status_t ble_qiot_advertising_start(void)
 {
@@ -125,7 +142,7 @@ ble_qiot_ret_status_t ble_qiot_advertising_start(void)
     my_adv_info.uuid_info.uuids    = uuids;
 
     if (E_LLSYNC_BIND_IDLE == llsync_bind_state_get()) {
-#if (1 == BLE_QIOT_BUTTON_BROADCAST)
+#if BLE_QIOT_BUTTON_BROADCAST
         if (NULL == sg_bind_timer) {
             sg_bind_timer = ble_timer_create(BLE_TIMER_ONE_SHOT_TYPE, ble_bind_timer_callback);
             if (NULL == sg_bind_timer) {
@@ -133,7 +150,7 @@ ble_qiot_ret_status_t ble_qiot_advertising_start(void)
                 return BLE_QIOT_RS_ERR;
             }
         }
-#endif
+#endif //BLE_QIOT_BUTTON_BROADCAST
 
         ble_advertising_stop();
 
@@ -145,9 +162,9 @@ ble_qiot_ret_status_t ble_qiot_advertising_start(void)
         ble_advertising_start(&my_adv_info);
         ble_qiot_log_i("start wait advertising");
 
-#if (1 == BLE_QIOT_BUTTON_BROADCAST)
+#if BLE_QIOT_BUTTON_BROADCAST
         ble_timer_start(sg_bind_timer, BLE_QIOT_BIND_TIMEOUT);
-#endif
+#endif //BLE_QIOT_BUTTON_BROADCAST
     } else if (E_LLSYNC_BIND_WAIT == llsync_bind_state_get()) {
         ble_advertising_stop();
         adv_data_len = ble_get_my_broadcast_data((char *)adv_data, sizeof(adv_data));
@@ -157,10 +174,10 @@ ble_qiot_ret_status_t ble_qiot_advertising_start(void)
         ble_advertising_start(&my_adv_info);
         ble_qiot_log_i("restart wait advertising");
 
-#if (1 == BLE_QIOT_BUTTON_BROADCAST)
+#if BLE_QIOT_BUTTON_BROADCAST
         ble_timer_stop(sg_bind_timer);
         ble_timer_start(sg_bind_timer, BLE_QIOT_BIND_TIMEOUT);
-#endif
+#endif //BLE_QIOT_BUTTON_BROADCAST
     } else if (E_LLSYNC_BIND_SUCC == llsync_bind_state_get()) {
         ble_advertising_stop();
         adv_data_len = ble_get_my_broadcast_data((char *)adv_data, sizeof(adv_data));
@@ -205,16 +222,6 @@ void ble_device_info_write_cb(const uint8_t *buf, uint16_t len)
     (void)ble_device_info_msg_handle((const char *)buf, len);
 }
 
-void ble_lldata_write_cb(const uint8_t *buf, uint16_t len)
-{
-    (void)ble_lldata_msg_handle((const char *)buf, len);
-}
-
-void ble_ota_write_cb(const uint8_t *buf, uint16_t len)
-{
-    (void)ble_ota_msg_handle((const char *)buf, len);
-}
-
 // when gap get ble connect event, use this function
 void ble_gap_connect_cb(void)
 {
@@ -227,9 +234,9 @@ void ble_gap_disconnect_cb(void)
     llsync_mtu_update(0);
     llsync_connection_state_set(E_LLSYNC_DISCONNECTED);
     ble_connection_state_set(E_BLE_DISCONNECTED);
-#if (1 == BLE_QIOT_SUPPORT_OTA )
+#if BLE_QIOT_SUPPORT_OTA
     ble_ota_stop();
-#endif
+#endif //BLE_QIOT_SUPPORT_OTA
 }
 
 static uint8_t ble_msg_type_header_len(uint8_t type)
@@ -297,6 +304,8 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
     uint16_t tmp_len     = 0;
     uint8_t  header_len  = 0;
     int      ret         = BLE_QIOT_RS_OK;
+    char *   p_ssid      = NULL;
+    char *   p_passwd    = NULL;
     // This flag is use to avoid attacker jump "ble_conn_get_authcode()" step, then
     // send 'E_DEV_MSG_CONN_SUCC' msg, and device straightly set 'E_LLSYNC_CONNECTED' flag.
     // This behavior make signature check useless lead to risk.
@@ -327,8 +336,9 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
 
     ch = p_data[0];
     switch (ch) {
+#if BLE_QIOT_LLSYNC_STANDARD
         case E_DEV_MSG_SYNC_TIME:
-#if (1 == BLE_QIOT_SECURE_BIND)
+#if BLE_QIOT_SECURE_BIND
             ret = ble_secure_bind_handle(p_data + 3, p_data_len - 3);
 #else
             ret_len = ble_bind_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
@@ -338,7 +348,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
                 break;
             }
             ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, NULL, 0, out_buf, ret_len);
-#endif
+#endif //BLE_QIOT_SECURE_BIND
             break;
         case E_DEV_MSG_CONN_VALID:
             ret_len = ble_conn_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
@@ -390,16 +400,42 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
         case E_DEV_MSG_UNBIND_FAIL:
             ble_qiot_log_i("get msg unbind fail");
             break;
-        case E_DEV_MSG_SET_MTU_RESULT:
-            ble_inform_mtu_result(p_data + 1, p_data_len - 1);
-            break;
         case E_DEV_MSG_BIND_TIMEOUT:
             ble_qiot_log_i("get msg bind result: %d", p_data[1]);
         #if (1 == BLE_QIOT_SECURE_BIND)
             ble_secure_bind_user_notify(p_data[1]);
         #endif
             break;
+#endif //BLE_QIOT_LLSYNC_STANDARD
+#if BLE_QIOT_LLSYNC_CONFIG_NET
+        case E_DEV_MSG_GET_DEV_INFO:
+            llsync_connection_state_set(E_LLSYNC_CONNECTED);
+            ret = ble_event_report_device_info();
+            break;
+        case E_DEV_MSG_SET_WIFI_MODE:
+            ret = ble_combo_wifi_mode_set(p_data[1]);
+            break;
+        case E_DEV_MSG_SET_WIFI_INFO:
+            // 1 byte ssid len + N bytes ssid + 1 byte pwd len + N bytes pwd
+            p_ssid = &p_data[3];
+            p_passwd = &p_ssid[p_ssid[0] + 1];
+            ret = ble_combo_wifi_info_set((const char *)&p_ssid[1], p_ssid[0], (const char *)&p_passwd[1], p_passwd[0]);
+            break;
+        case E_DEV_MSG_SET_WIFI_CONNECT:
+            ret = ble_combo_wifi_connect();
+            break;
+        case E_DEV_MSG_SET_WIFI_TOKEN:
+            ret = ble_combo_wifi_token_set(p_data + 3, p_data_len - 3);
+            break;
+        case E_DEV_MSG_GET_DEV_LOG:
+            ret = ble_combo_wifi_log_get();
+            break;
+#endif
+        case E_DEV_MSG_SET_MTU_RESULT:
+            ble_inform_mtu_result(p_data + 1, p_data_len - 1);
+            break;
         default:
+            ble_qiot_log_e("unknow type %d", ch);
             break;
     }
     memset(&sg_ble_slice_data, 0, sizeof(sg_ble_slice_data));
@@ -407,6 +443,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
     return ret;
 }
 
+#if BLE_QIOT_LLSYNC_STANDARD
 // lldata message from remote
 int ble_lldata_msg_handle(const char *in_buf, int in_len)
 {
@@ -509,7 +546,7 @@ int ble_lldata_msg_handle(const char *in_buf, int in_len)
     return ret;
 }
 
-#if (1 == BLE_QIOT_SUPPORT_OTA)
+#if BLE_QIOT_SUPPORT_OTA
 static uint8_t ble_ota_type_header_len(uint8_t type)
 {
     return BLE_QIOT_GET_OTA_REQUEST_HEADER_LEN;
@@ -588,7 +625,9 @@ int ble_ota_msg_handle(const char *buf, uint16_t len)
 {
     return BLE_QIOT_RS_OK;
 }
-#endif
+#endif  //BLE_QIOT_SUPPORT_OTA
+
+#endif //BLE_QIOT_LLSYNC_STANDARD
 
 #ifdef __cplusplus
 }

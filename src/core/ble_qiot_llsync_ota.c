@@ -13,8 +13,9 @@
 extern "C" {
 #endif
 
-#include "ble_qiot_llsync_ota.h"
+#include "ble_qiot_config.h"
 
+#if BLE_QIOT_LLSYNC_STANDARD
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,8 +31,9 @@ extern "C" {
 #include "ble_qiot_param_check.h"
 #include "ble_qiot_service.h"
 #include "ble_qiot_template.h"
+#include "ble_qiot_llsync_ota.h"
 
-#if (1 == BLE_QIOT_SUPPORT_OTA)
+#if BLE_QIOT_SUPPORT_OTA
 static ble_ota_user_callback sg_ota_user_cb;  // user callback
 // 1. monitor the data and request from the server if data lost; 2. call the user function if no data for a long time
 static ble_timer_t sg_ota_timer                           = NULL;
@@ -121,7 +123,7 @@ static inline ble_qiot_ret_status_t ble_ota_user_valid_cb(void)
 }
 static inline ble_qiot_ret_status_t ble_ota_write_info(void)
 {
-#if (1 == BLE_QIOT_SUPPORT_RESUMING)
+#if BLE_QIOT_SUPPORT_RESUMING
     sg_ota_info.valid_flag     = BLE_QIOT_OTA_PAGE_VALID_VAL;
     sg_ota_info.last_file_size = ble_ota_download_size_get();
     sg_ota_info.last_address   = ble_ota_download_address_get();
@@ -130,18 +132,18 @@ static inline ble_qiot_ret_status_t ble_ota_write_info(void)
         ble_qiot_log_e("write ota info failed");
         return BLE_QIOT_RS_ERR;
     }
-#endif
+#endif //BLE_QIOT_SUPPORT_RESUMING
     return BLE_QIOT_RS_OK;
 }
 static inline void ble_ota_clear_info(void)
 {
-#if (1 == BLE_QIOT_SUPPORT_RESUMING)
+#if BLE_QIOT_SUPPORT_RESUMING
     sg_ota_info.valid_flag = ~BLE_QIOT_OTA_PAGE_VALID_VAL;
     if (sizeof(ble_ota_info_record) !=
         ble_write_flash(BLE_QIOT_OTA_INFO_FLASH_ADDR, (const char *)&sg_ota_info, sizeof(ble_ota_info_record))) {
         ble_qiot_log_e("clear ota info failed");
     }
-#endif
+#endif //BLE_QIOT_SUPPORT_RESUMING
     return;
 }
 static inline ble_qiot_ret_status_t ble_ota_reply_ota_data(void)
@@ -243,7 +245,7 @@ static ble_qiot_ret_status_t ble_ota_init(void)
     ble_ota_download_address_set();
     memset(&sg_ota_reply_info, 0, sizeof(sg_ota_reply_info));
 
-#if (1 == BLE_QIOT_SUPPORT_RESUMING)
+#if BLE_QIOT_SUPPORT_RESUMING
     // start from 0 if read flash fail, but ota will continue so ignored the return code
     ble_read_flash(BLE_QIOT_OTA_INFO_FLASH_ADDR, (char *)&sg_ota_info, sizeof(sg_ota_info));
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "ota info", &sg_ota_info, sizeof(sg_ota_info));
@@ -263,7 +265,7 @@ static ble_qiot_ret_status_t ble_ota_init(void)
     } else {
         memset(&sg_ota_info, 0, sizeof(ble_ota_info_record));
     }
-#endif
+#endif //BLE_QIOT_SUPPORT_RESUMING
     return BLE_QIOT_RS_OK;
 }
 // stop ota if ble disconnect
@@ -316,14 +318,14 @@ ble_qiot_ret_status_t ble_ota_request_handle(const char *in_buf, int buf_len)
         ota_reply_info.reboot_timeout   = BLE_QIOT_REBOOT_TIME;
         ota_reply_info.last_file_size   = 0;
         ota_reply_info.package_interval = BLE_QIOT_PACKAGE_INTERVAL;
-#if (1 == BLE_QIOT_SUPPORT_RESUMING)
+#if BLE_QIOT_SUPPORT_RESUMING
         reply_flag |= BLE_QIOT_OTA_RESUME_ENABLE;
         // check file crc to determine its the same file, download the new file if its different
         if (ble_qiot_ota_info_valid() && (file_crc == sg_ota_info.download_file_info.file_crc) &&
             (file_size == sg_ota_info.download_file_info.file_size)) {
             ota_reply_info.last_file_size = HTONL(ble_ota_download_size_get());
         }
-#endif
+#endif //BLE_QIOT_SUPPORT_RESUMING
 
         sg_ota_info.download_file_info.file_size = file_size;
         sg_ota_info.download_file_info.file_crc  = file_crc;
@@ -480,7 +482,9 @@ ble_qiot_ret_status_t ble_ota_data_handle(const char *in_buf, int buf_len)
     }
     return BLE_QIOT_RS_OK;
 }
-#endif
+#endif //BLE_QIOT_SUPPORT_OTA
+
+#endif //BLE_QIOT_LLSYNC_STANDARD
 
 #ifdef __cplusplus
 }

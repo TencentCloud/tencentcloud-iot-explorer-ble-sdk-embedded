@@ -27,11 +27,7 @@ qcloud_iot_explorer_ble
   ├─config                            # SDK 配置文件
   ├─docs                              # 文档
   ├─inc                               # 头文件
-  ├─samples                           # 参考实现源码
-  │   ├─esp32                         # esp32例程
-  │   ├─nrf52832                      # nordic 52832例程
   ├─scripts                           # 脚本
-  │   ├─code_extract                  # 代码抽取
   │   ├─interpret_json_dt             # 数据模版转换
   │       ├─config                    # ini文件，记录常量
   │       ├─src                       # 脚本源码

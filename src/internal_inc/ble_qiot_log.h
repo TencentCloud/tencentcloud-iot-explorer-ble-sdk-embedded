@@ -93,9 +93,9 @@ extern e_ble_qiot_log_level g_log_level;
 
 void ble_qiot_set_log_level(e_ble_qiot_log_level level);
 
-#if (0 == BLE_QIOT_USER_DEFINE_HEDUMP)
+#if !BLE_QIOT_USER_DEFINE_HEXDUMP
 void ble_qiot_log_hex(e_ble_qiot_log_level level, const char *hex_name, const char *data, uint32_t data_len);
-#endif  // BLE_QIOT_USER_DEFINE_HEDUMP
+#endif  // BLE_QIOT_USER_DEFINE_HEXDUMP
 
 #ifdef __cplusplus
 }

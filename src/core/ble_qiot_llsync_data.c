@@ -13,11 +13,13 @@
 extern "C" {
 #endif
 
-#include "ble_qiot_llsync_data.h"
-
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "ble_qiot_config.h"
+
+#if BLE_QIOT_LLSYNC_STANDARD
 
 #include "ble_qiot_export.h"
 #include "ble_qiot_import.h"
@@ -28,6 +30,7 @@ extern "C" {
 #include "ble_qiot_param_check.h"
 #include "ble_qiot_service.h"
 #include "ble_qiot_template.h"
+#include "ble_qiot_llsync_data.h"
 
 // parse tlv data and return the length parsed
 int ble_lldata_parse_tlv(const char *buf, int buf_len, e_ble_tlv *tlv)
@@ -120,7 +123,7 @@ static ble_qiot_ret_status_t ble_lldata_property_data_handle(bool is_request, co
 #else
     ble_qiot_log_e("property" BLE_QIOT_NOT_SUPPORT_WARN);
     return BLE_QIOT_RS_OK;
-#endif
+#endif //BLE_QIOT_INCLUDE_PROPERTY
 }
 
 #ifdef BLE_QIOT_INCLUDE_PROPERTY
@@ -173,7 +176,7 @@ ble_qiot_ret_status_t ble_user_property_get_report_data(void)
 
     return ble_event_notify(BLE_QIOT_EVENT_UP_PROPERTY_REPORT, NULL, 0, (const char *)data_buf, data_len);
 }
-#endif
+#endif //BLE_QIOT_INCLUDE_PROPERTY
 
 // handle control
 ble_qiot_ret_status_t ble_lldata_property_request_handle(const char *in_buf, int buf_len)
@@ -188,7 +191,7 @@ static ble_qiot_ret_status_t ble_lldata_property_report_reply(const char *in_buf
     (void)ble_user_property_report_reply_handle(in_buf[0]);
 #else
     ble_qiot_log_e("property" BLE_QIOT_NOT_SUPPORT_WARN);
-#endif
+#endif //BLE_QIOT_INCLUDE_PROPERTY
     return BLE_QIOT_RS_OK;
 }
 
@@ -210,7 +213,7 @@ static ble_qiot_ret_status_t ble_lldata_property_get_status_reply(const char *in
 #else
     ble_qiot_log_e("property" BLE_QIOT_NOT_SUPPORT_WARN);
     return BLE_QIOT_RS_OK;
-#endif
+#endif //BLE_QIOT_INCLUDE_PROPERTY
 }
 
 // handle reply from remote
@@ -234,7 +237,7 @@ ble_qiot_ret_status_t ble_lldata_event_handle(uint8_t id, const char *in_buf, in
     (void)ble_user_event_reply_handle(id, in_buf[0]);
 #else
     ble_qiot_log_e("event" BLE_QIOT_NOT_SUPPORT_WARN);
-#endif
+#endif //BLE_QIOT_INCLUDE_PROPERTY
     return BLE_QIOT_RS_OK;
 }
 
@@ -333,8 +336,10 @@ end:
 #else
     ble_qiot_log_e("action" BLE_QIOT_NOT_SUPPORT_WARN);
     return BLE_QIOT_RS_OK;
-#endif
+#endif //BLE_QIOT_INCLUDE_PROPERTY
 }
+
+#endif //BLE_QIOT_LLSYNC_STANDARD
 
 #ifdef __cplusplus
 }

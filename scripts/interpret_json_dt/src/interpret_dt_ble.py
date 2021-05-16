@@ -90,32 +90,14 @@ def _dt_write_public_header(write_fd):
     _dt_write_enum_to_file(write_fd, '// data type in template, corresponding to type in json file',
                            dt_config['DATA_TYPE'].name,
                            _dt_get_enum_list_from_conf(dt_config['DATA_TYPE']))
-    _dt_write_enum_to_file(write_fd, '// message type, reference data template ', dt_config['MSG_TYPE'].name,
-                           _dt_get_enum_list_from_conf(dt_config['MSG_TYPE']))
-    _dt_write_enum_to_file(write_fd, '// define property authority, not used', dt_config['PROPERTY_AUTH'].name,
+    _dt_write_enum_to_file(write_fd, '// message type, reference data template ', dt_config['PROPERTY_AUTH'].name,
                            _dt_get_enum_list_from_conf(dt_config['PROPERTY_AUTH']))
-    _dt_write_enum_to_file(write_fd, '// define reply result', dt_config['REPLY'].name,
-                           _dt_get_enum_list_from_conf(dt_config['REPLY']))
     _dt_write_enum_to_file(write_fd, '// define message flow direction', dt_config['EFFECT'].name,
                            _dt_get_enum_list_from_conf(dt_config['EFFECT']))
-    _dt_write_enum_to_file(write_fd, '// define message type that from server to device', dt_config['DATA_DOWN'].name,
-                           _dt_get_enum_list_from_conf(dt_config['DATA_DOWN']))
-    _dt_write_enum_to_file(write_fd, '// define message type that from device to server', dt_config['EVENT_UP'].name,
-                           _dt_get_enum_list_from_conf(dt_config['EVENT_UP']))
 
-    _dt_write_newline_to_file(write_fd,
-                              '\n// msg header define, bit 7-6 is msg type, bit 5 means request or reply, bit 4 - 0 is id')
-    _dt_write_macro_to_file(write_fd, 'PARSE_MSG_HEAD_TYPE(_c)', '(((_c) & 0xFF) >> 6)')
-    _dt_write_macro_to_file(write_fd, 'PARSE_MSG_HEAD_EFFECT(_c)',
-                            '((((_c) & 0xFF) & 0x20) ? BLE_QIOT_EFFECT_REPLY : BLE_QIOT_EFFECT_REQUEST)')
-    _dt_write_macro_to_file(write_fd, 'PARSE_MSG_HEAD_ID(_c)', '((_c) & 0x1F)')
     _dt_write_macro_to_file(write_fd, 'PACKAGE_MSG_HEAD(_type, _reply, _id)',
                             '(((_type) << 6) | (((_reply) == BLE_QIOT_EFFECT_REPLY) << 5) | ((_id) & 0x1F))')
 
-    _dt_write_newline_to_file(write_fd,
-                              '\n// tlv header define, bit 7 - 5 is type, bit 4 - 0 depends on type of data template')
-    _dt_write_macro_to_file(write_fd, 'PARSE_TLV_HEAD_TYPE(_c)', '(((_c) & 0xFF) >> 5)')
-    _dt_write_macro_to_file(write_fd, 'PARSE_TLV_HEAD_ID(_c)', '((_c) & 0x1F)')
     _dt_write_macro_to_file(write_fd, 'PACKAGE_TLV_HEAD(_type, _id)', '(((_type) << 5) | ((_id) & 0x1F))\n')
 
     _dt_write_newline_to_file(write_fd, '\n// define tlv struct')

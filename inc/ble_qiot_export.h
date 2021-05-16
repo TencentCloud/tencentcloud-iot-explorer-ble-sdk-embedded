@@ -16,13 +16,9 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "ble_qiot_common.h"
+#include "ble_qiot_config.h"
 
-// Tencent Company ID
-#define TENCENT_COMPANY_IDENTIFIER  0xFEE7
-#define TENCENT_COMPANY_IDENTIFIER2 0xFEBA
+#define TENCENT_COMPANY_IDENTIFIER  0xFEE7  // Tencent Company ID, another is 0xFEBA
 
 #define IOT_BLE_UUID_BASE                                                                              \
     {                                                                                                  \
@@ -30,13 +26,21 @@ extern "C" {
     }
 
 // llsync services uuid
-#define IOT_BLE_UUID_SERVICE 0xFFE0
+#if BLE_QIOT_LLSYNC_STANDARD
+    #define IOT_BLE_UUID_SERVICE 0xFFE0
+#endif //BLE_QIOT_LLSYNC_STANDARD
+#if BLE_QIOT_LLSYNC_CONFIG_NET
+    #define IOT_BLE_UUID_SERVICE 0xFFF0
+#endif //BLE_QIOT_LLSYNC_CONFIG_NET
 
 // characteristics uuid
 #define IOT_BLE_UUID_DEVICE_INFO 0xFFE1  // used to connection and identity authentication
-#define IOT_BLE_UUID_DATA        0xFFE2  // used to send data to the device from server
 #define IOT_BLE_UUID_EVENT       0xFFE3  // used to send data to the server from device
-#define IOT_BLE_UUID_OTA         0xFFE4  // used to send ota data to the device from server
+
+#if BLE_QIOT_LLSYNC_STANDARD
+    #define IOT_BLE_UUID_DATA        0xFFE2  // used to send data to the device from server
+    #define IOT_BLE_UUID_OTA         0xFFE4  // used to send ota data to the device from server
+#endif //BLE_QIOT_LLSYNC_STANDARD
 
 typedef enum {
     GATT_CHAR_BROADCAST      = (1 << 0),  // Broadcasting of the value permitted.
@@ -78,11 +82,6 @@ typedef enum {
     BLE_QIOT_RS_VALID_SIGN_ERR = -4,
 } ble_qiot_ret_status_t;
 
-typedef enum {
-    BLE_QIOT_SECURE_BIND_CONFIRM = 0,
-    BLE_QIOT_SECURE_BIND_REJECT  = 1,
-} ble_qiot_secure_bind_t;
-
 /**
  * @brief get llsync services context
  *
@@ -96,20 +95,6 @@ const qiot_service_init_s *ble_get_qiot_services(void);
  * @return BLE_QIOT_RS_OK is success, other is error
  */
 ble_qiot_ret_status_t ble_qiot_explorer_init(void);
-
-/**
- * @brief  get property of the device from the server
- * @note   the property will be received from IOT_BLE_UUID_DATA if success
- * @return BLE_QIOT_RS_OK is success, other is error. if success, the data from server will come to
- */
-ble_qiot_ret_status_t ble_event_get_status(void);
-
-/**
- * @brief  report property of the device to the server
- * @note   the reply will be received from IOT_BLE_UUID_DATA if success
- * @return BLE_QIOT_RS_OK is success, other is error
- */
-ble_qiot_ret_status_t ble_event_report_property(void);
 
 /**
  * @brief  report mtu of the device to the server
@@ -126,21 +111,6 @@ ble_qiot_ret_status_t ble_event_report_device_info(void);
  * @return BLE_QIOT_RS_OK is success, other is error
  */
 ble_qiot_ret_status_t ble_event_sync_mtu(uint16_t llsync_mtu);
-
-/**
- * @brief  user choose whether to connect
- * @note   call the function when the user choose connect or not
- * @return BLE_QIOT_RS_OK is success, other is error
- */
-ble_qiot_ret_status_t ble_secure_bind_user_confirm(ble_qiot_secure_bind_t choose);
-
-/**
- * @brief  post event to the server
- * @param  event_id id of the event
- * @note   the reply will be received from IOT_BLE_UUID_DATA if success
- * @return BLE_QIOT_RS_OK is success, other is error
- */
-ble_qiot_ret_status_t ble_event_post(uint8_t event_id);
 
 /**
  * @brief  start llsync advertising
@@ -164,6 +134,43 @@ ble_qiot_ret_status_t ble_qiot_advertising_stop(void);
 void ble_device_info_write_cb(const uint8_t *buf, uint16_t len);
 
 /**
+ * @brief gap event connect call-back, when gap get ble connect event, use this function
+ *       tell qiot ble sdk
+ * @return none
+ */
+void ble_gap_connect_cb(void);
+
+/**
+ * @brief gap event disconnect call-back, when gap get ble disconnect event, use this function
+ *       tell qiot ble sdk
+ * @return none
+ */
+void ble_gap_disconnect_cb(void);
+
+#ifdef BLE_QIOT_LLSYNC_STANDARD
+/**
+ * @brief  get property of the device from the server
+ * @note   the property will be received from IOT_BLE_UUID_DATA if success
+ * @return BLE_QIOT_RS_OK is success, other is error. if success, the data from server will come to
+ */
+ble_qiot_ret_status_t ble_event_get_status(void);
+
+/**
+ * @brief  report property of the device to the server
+ * @note   the reply will be received from IOT_BLE_UUID_DATA if success
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_report_property(void);
+
+/**
+ * @brief  post event to the server
+ * @param  event_id id of the event
+ * @note   the reply will be received from IOT_BLE_UUID_DATA if success
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_post(uint8_t event_id);
+
+/**
  * @brief data write callback, call the function when characteristic IOT_BLE_UUID_DATA received data
  * @param buf a pointer point to the data
  * @param len data length
@@ -179,19 +186,17 @@ void ble_lldata_write_cb(const uint8_t *buf, uint16_t len);
  */
 void ble_ota_write_cb(const uint8_t *buf, uint16_t len);
 
-/**
- * @brief gap event connect call-back, when gap get ble connect event, use this function
- *       tell qiot ble sdk
- * @return none
- */
-void ble_gap_connect_cb(void);
+typedef enum {
+    BLE_QIOT_SECURE_BIND_CONFIRM = 0,
+    BLE_QIOT_SECURE_BIND_REJECT  = 1,
+} ble_qiot_secure_bind_t;
 
 /**
- * @brief gap event disconnect call-back, when gap get ble disconnect event, use this function
- *       tell qiot ble sdk
- * @return none
+ * @brief  user choose whether to connect
+ * @note   call the function when the user choose connect or not
+ * @return BLE_QIOT_RS_OK is success, other is error
  */
-void ble_gap_disconnect_cb(void);
+ble_qiot_ret_status_t ble_secure_bind_user_confirm(ble_qiot_secure_bind_t choose);
 
 // inform user the ota start
 typedef void (*ble_ota_start_callback)(void);
@@ -217,6 +222,62 @@ typedef ble_qiot_ret_status_t (*ble_ota_valid_file_callback)(uint32_t file_size,
  */
 void ble_ota_callback_reg(ble_ota_start_callback start_cb, ble_ota_stop_callback stop_cb,
                           ble_ota_valid_file_callback valid_file_cb);
+#endif //BLE_QIOT_LLSYNC_STANDARD
+
+#if BLE_QIOT_LLSYNC_CONFIG_NET
+
+typedef enum {
+    BLE_WIFI_MODE_NULL = 0,  // invalid mode
+    BLE_WIFI_MODE_STA  = 1,  // station
+    BLE_WIFI_MODE_AP   = 2,  // ap
+} BLE_WIFI_MODE;
+
+typedef enum {
+    BLE_WIFI_STATE_CONNECT = 0,  // wifi connect
+    BLE_WIFI_STATE_OTHER   = 1,  // other state
+} BLE_WIFI_STATE;
+
+/**
+ * @brief report wifi-mode setting result
+ * @param result setting result, 0 is success, other failed
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_report_wifi_mode(uint8_t result);
+
+/**
+ * @brief report wifi-info setting result
+ * @param result setting result, 0 is success, other failed
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_report_wifi_info(uint8_t result);
+
+/**
+ * @brief report wifi connection status
+ * @param mode current wifi mode, reference BLE_WIFI_MODE
+ * @param state current wifi state, reference BLE_WIFI_STATE
+ * @param ssid_len length of ssid
+ * @param ssid the ssid currently connected
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_report_wifi_connect(BLE_WIFI_MODE mode, BLE_WIFI_STATE state, uint8_t ssid_len,
+const char *ssid);
+
+/**
+ * @brief report wifi-token setting result
+ * @param result setting result, 0 is success, other failed
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_report_wifi_token(uint8_t result);
+
+/**
+ * @brief report wifi-log
+ * @param log log message
+ * @param log_size length of log
+ * @return BLE_QIOT_RS_OK is success, other is error
+ */
+ble_qiot_ret_status_t ble_event_report_wifi_log(const uint8_t *log, uint16_t log_size);
+
+#endif //BLE_QIOT_LLSYNC_CONFIG_NET
 
 #ifdef __cplusplus
 }

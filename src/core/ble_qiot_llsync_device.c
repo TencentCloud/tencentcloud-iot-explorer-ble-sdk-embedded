@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "ble_qiot_llsync_device.h"
+#include "ble_qiot_config.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -28,6 +28,7 @@ extern "C" {
 #include "ble_qiot_param_check.h"
 #include "ble_qiot_utils_base64.h"
 #include "ble_qiot_md5.h"
+#include "ble_qiot_llsync_device.h"
 
 #define BLE_GET_EXPIRATION_TIME(_cur_time) ((_cur_time) + BLE_EXPIRATION_TIME)
 
@@ -69,11 +70,6 @@ void llsync_connection_state_set(e_llsync_connection_state new_state)
     sg_llsync_connection_state = new_state;
 }
 
-e_llsync_connection_state llsync_connection_state_get(void)
-{
-    return sg_llsync_connection_state;
-}
-
 bool llsync_is_connected(void)
 {
     return sg_llsync_connection_state == E_LLSYNC_CONNECTED;
@@ -85,72 +81,9 @@ void ble_connection_state_set(e_ble_connection_state new_state)
     sg_ble_connection_state = new_state;
 }
 
-e_ble_connection_state ble_connection_state_get(void)
-{
-    return sg_ble_connection_state;
-}
-
 bool ble_is_connected(void)
 {
     return sg_ble_connection_state == E_BLE_CONNECTED;
-}
-
-static int memchk(const uint8_t *buf, int len)
-{
-    int i = 0;
-
-    for (i = 0; i < len; i++) {
-        if (buf[i] != 0xFF) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-ble_qiot_ret_status_t ble_init_flash_data(void)
-{
-    if (sizeof(sg_core_data) !=
-        ble_read_flash(BLE_QIOT_RECORD_FLASH_ADDR, (char *)&sg_core_data, sizeof(sg_core_data))) {
-        ble_qiot_log_e("llsync read flash failed");
-        return BLE_QIOT_RS_ERR_FLASH;
-    }
-    if (0 == memchk((const uint8_t *)&sg_core_data, sizeof(sg_core_data))) {
-        memset(&sg_core_data, 0, sizeof(sg_core_data));
-    }
-
-    if (0 != ble_get_mac(sg_device_info.mac)) {
-        ble_qiot_log_e("llsync get mac failed");
-        return BLE_QIOT_RS_ERR_FLASH;
-    }
-    if (0 != ble_get_product_id(sg_device_info.product_id)) {
-        ble_qiot_log_e("llsync get product id failed");
-        return BLE_QIOT_RS_ERR_FLASH;
-    }
-    if (0 != ble_get_psk(sg_device_info.psk)) {
-        ble_qiot_log_e("llsync get secret key failed");
-        return BLE_QIOT_RS_ERR_FLASH;
-    }
-    if (0 == ble_get_device_name(sg_device_info.device_name)) {
-        ble_qiot_log_e("llsync get device name failed");
-        return BLE_QIOT_RS_ERR_FLASH;
-    }
-    llsync_bind_state_set((e_llsync_bind_state)sg_core_data.bind_state);
-    // ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "core_data", (char *)&sg_core_data, sizeof(sg_core_data));
-    // ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "device_info", (char *)&sg_device_info, sizeof(sg_device_info));
-
-    return BLE_QIOT_RS_OK;
-}
-
-static ble_qiot_ret_status_t ble_write_core_data(ble_core_data *core_data)
-{
-    memcpy(&sg_core_data, core_data, sizeof(ble_core_data));
-    if (sizeof(ble_core_data) !=
-        ble_write_flash(BLE_QIOT_RECORD_FLASH_ADDR, (char *)&sg_core_data, sizeof(ble_core_data))) {
-        ble_qiot_log_e("llsync write core failed");
-        return BLE_QIOT_RS_ERR_FLASH;
-    }
-
-    return BLE_QIOT_RS_OK;
 }
 
 // [1byte bind state] + [6 bytes mac] + [8bytes identify string]/[10 bytes product id]
@@ -159,6 +92,7 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
     POINTER_SANITY_CHECK(out_buf, BLE_QIOT_RS_ERR_PARA);
     BUFF_LEN_SANITY_CHECK(buf_len, BLE_BIND_IDENTIFY_STR_LEN + BLE_QIOT_MAC_LEN + 1, BLE_QIOT_RS_ERR_PARA);
     int     ret_len                      = 0;
+#if BLE_QIOT_LLSYNC_STANDARD
     int     i                            = 0;
     uint8_t md5_in_buf[128]              = {0};
     uint8_t md5_in_len                   = 0;
@@ -178,7 +112,12 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
         ret_len += MD5_DIGEST_SIZE / 2;
         memcpy(out_buf + ret_len, sg_core_data.identify_str, sizeof(sg_core_data.identify_str));
         ret_len += sizeof(sg_core_data.identify_str);
-    } else {
+    } else
+#endif //BLE_QIOT_LLSYNC_STANDARD
+    {
+#if BLE_QIOT_LLSYNC_CONFIG_NET
+        out_buf[ret_len++] = BLE_QIOT_LLSYNC_PROTOCOL_VERSION;
+#endif // BLE_QIOT_LLSYNC_CONFIG_NET
         // 1 bytes state + 6 bytes mac + 10 bytes product id
         memcpy(out_buf + ret_len, sg_device_info.mac, BLE_QIOT_MAC_LEN);
         ret_len += BLE_QIOT_MAC_LEN;
@@ -188,6 +127,49 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "broadcast", out_buf, ret_len);
 
     return ret_len;
+}
+
+int ble_inform_mtu_result(const char *result, uint16_t data_len)
+{
+    uint16_t ret = 0;
+
+    memcpy(&ret, result, sizeof(uint16_t));
+    ret = NTOHS(ret);
+    ble_qiot_log_i("mtu setting result: %02x", ret);
+
+    if (LLSYNC_MTU_SET_RESULT_ERR == ret) {
+        return ble_event_sync_mtu(ATT_DEFAULT_MTU);
+    } else if (0 == ret) {
+        return BLE_QIOT_RS_OK;
+    } else {
+        llsync_mtu_update(ATT_MTU_TO_LLSYNC_MTU(ret));
+        return BLE_QIOT_RS_OK;
+    }
+}
+
+#if BLE_QIOT_LLSYNC_STANDARD
+static int memchk(const uint8_t *buf, int len)
+{
+    int i = 0;
+
+    for (i = 0; i < len; i++) {
+        if (buf[i] != 0xFF) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static ble_qiot_ret_status_t ble_write_core_data(ble_core_data *core_data)
+{
+    memcpy(&sg_core_data, core_data, sizeof(ble_core_data));
+    if (sizeof(ble_core_data) !=
+        ble_write_flash(BLE_QIOT_RECORD_FLASH_ADDR, (char *)&sg_core_data, sizeof(ble_core_data))) {
+        ble_qiot_log_e("llsync write core failed");
+        return BLE_QIOT_RS_ERR_FLASH;
+    }
+
+    return BLE_QIOT_RS_OK;
 }
 
 int ble_bind_get_authcode(const char *bind_data, uint16_t data_len, char *out_buf, uint16_t buf_len)
@@ -362,22 +344,46 @@ int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *ou
     return ret_len;
 }
 
-int ble_inform_mtu_result(const char *result, uint16_t data_len)
+#endif
+
+ble_qiot_ret_status_t ble_init_flash_data(void)
 {
-    uint16_t ret = 0;
-
-    memcpy(&ret, result, sizeof(uint16_t));
-    ret = NTOHS(ret);
-    ble_qiot_log_i("mtu setting result: %02x", ret);
-
-    if (LLSYNC_MTU_SET_RESULT_ERR == ret) {
-        return ble_event_sync_mtu(ATT_DEFAULT_MTU);
-    } else if (0 == ret) {
-        return BLE_QIOT_RS_OK;
-    } else {
-        llsync_mtu_update(ATT_MTU_TO_LLSYNC_MTU(ret));
-        return BLE_QIOT_RS_OK;
+#if BLE_QIOT_LLSYNC_STANDARD
+    if (sizeof(sg_core_data) !=
+        ble_read_flash(BLE_QIOT_RECORD_FLASH_ADDR, (char *)&sg_core_data, sizeof(sg_core_data))) {
+        ble_qiot_log_e("llsync read flash failed");
+        return BLE_QIOT_RS_ERR_FLASH;
     }
+    if (0 == memchk((const uint8_t *)&sg_core_data, sizeof(sg_core_data))) {
+        memset(&sg_core_data, 0, sizeof(sg_core_data));
+    }
+
+    if (0 != ble_get_psk(sg_device_info.psk)) {
+        ble_qiot_log_e("llsync get secret key failed");
+        return BLE_QIOT_RS_ERR_FLASH;
+    }
+#endif //BLE_QIOT_LLSYNC_STANDARD
+
+    if (0 != ble_get_mac(sg_device_info.mac)) {
+        ble_qiot_log_e("llsync get mac failed");
+        return BLE_QIOT_RS_ERR_FLASH;
+    }
+    if (0 != ble_get_product_id(sg_device_info.product_id)) {
+        ble_qiot_log_e("llsync get product id failed");
+        return BLE_QIOT_RS_ERR_FLASH;
+    }
+    if (0 == ble_get_device_name(sg_device_info.device_name)) {
+        ble_qiot_log_e("llsync get device name failed");
+        return BLE_QIOT_RS_ERR_FLASH;
+    }
+
+#if BLE_QIOT_LLSYNC_STANDARD
+    llsync_bind_state_set((e_llsync_bind_state)sg_core_data.bind_state);
+    // ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "core_data", (char *)&sg_core_data, sizeof(sg_core_data));
+    // ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "device_info", (char *)&sg_device_info, sizeof(sg_device_info));
+#endif //BLE_QIOT_LLSYNC_STANDARD
+
+    return BLE_QIOT_RS_OK;
 }
 
 #ifdef __cplusplus

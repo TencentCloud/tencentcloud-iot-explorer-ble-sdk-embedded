@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#include "ble_qiot_llsync_event.h"
+#include "ble_qiot_config.h"
 
 #include <stdbool.h>
 #include <string.h>
@@ -24,46 +24,28 @@ extern "C" {
 #include "ble_qiot_service.h"
 #include "ble_qiot_template.h"
 #include "ble_qiot_llsync_device.h"
-
-// get_status
-ble_qiot_ret_status_t ble_event_get_status(void)
-{
-#ifdef BLE_QIOT_INCLUDE_PROPERTY
-    return ble_event_notify(BLE_QIOT_EVENT_UP_GET_STATUS, NULL, 0, NULL, 0);
-#else
-    ble_qiot_log_e("property" BLE_QIOT_NOT_SUPPORT_WARN);
-    return BLE_QIOT_RS_OK;
-#endif
-}
-
-// report
-ble_qiot_ret_status_t ble_event_report_property(void)
-{
-#ifdef BLE_QIOT_INCLUDE_PROPERTY
-    return ble_user_property_get_report_data();
-#else
-    ble_qiot_log_e("property" BLE_QIOT_NOT_SUPPORT_WARN);
-    return BLE_QIOT_RS_OK;
-#endif
-}
+#include "ble_qiot_llsync_event.h"
 
 // report device info
 ble_qiot_ret_status_t ble_event_report_device_info(void)
 {
-    char     device_info[4] = {0};  // 1 byte llsync proto version + 2 bytes mtu size + 1 byte length of develop version
+    char     device_info[56] = {0};  // 1 byte llsync proto version + 2 bytes mtu size + 1 byte length of develop version
     uint16_t mtu_size       = 0;
-    char *   p              = BLE_QIOT_USER_DEVELOPER_VERSION;
 
-#if 1 == BLE_QIOT_REMOTE_SET_MTU
+#if BLE_QIOT_REMOTE_SET_MTU
     mtu_size = LLSYNC_MTU_SET_MASK;
-#endif
+#endif //BLE_QIOT_REMOTE_SET_MTU
     mtu_size |= ble_get_user_data_mtu_size();
     mtu_size       = HTONS(mtu_size);
     device_info[0] = BLE_QIOT_LLSYNC_PROTOCOL_VERSION;
     memcpy(&device_info[1], &mtu_size, sizeof(mtu_size));
-    device_info[3] = strlen(p);
-
-    return ble_event_notify(BLE_QIOT_EVENT_UP_REPORT_MTU, (uint8_t *)device_info, sizeof(device_info), p, strlen(p));
+#if BLE_QIOT_LLSYNC_CONFIG_NET
+    device_info[3] = (char)ble_get_device_name(&device_info[4]);
+#else
+    device_info[3] = (char)strlen(BLE_QIOT_USER_DEVELOPER_VERSION);
+    memcpy(&device_info[4], BLE_QIOT_USER_DEVELOPER_VERSION, device_info[3]);
+#endif //BLE_QIOT_LLSYNC_CONFIG_NET
+    return ble_event_notify(BLE_QIOT_EVENT_UP_REPORT_MTU, NULL, 0, device_info, 4 + device_info[3]);
 }
 
 // sync mtu
@@ -76,16 +58,6 @@ ble_qiot_ret_status_t ble_event_sync_mtu(uint16_t att_mtu)
     mtu_size = HTONS(mtu_size);
     return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_MTU, NULL, 0, (const char*)&mtu_size, sizeof(uint16_t));
 }
-
-#if (1 == BLE_QIOT_SECURE_BIND)
-ble_qiot_ret_status_t ble_event_sync_wait_time(void)
-{
-    uint16_t time = BLE_QIOT_BIND_WAIT_TIME;
-
-    time = HTONS(time);
-    return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME, NULL, 0, (const char*)&time, sizeof(uint16_t));
-}
-#endif
 
 ble_qiot_ret_status_t ble_event_notify2(uint8_t type, uint8_t length_flag, uint8_t *header, uint8_t header_len,
                                         const char *buf, uint16_t buf_len)
@@ -163,6 +135,76 @@ ble_qiot_ret_status_t ble_event_notify(uint8_t type, uint8_t *header, uint8_t he
     return ble_event_notify2(type, 0, header, header_len, buf, buf_len);
 }
 
+#if BLE_QIOT_LLSYNC_CONFIG_NET
+ble_qiot_ret_status_t ble_event_report_wifi_mode(uint8_t result)
+{
+    return ble_event_notify(BLE_QIOT_EVENT_UP_WIFI_MODE, NULL, 0, (const char *)&result, sizeof(uint8_t));
+}
+
+ble_qiot_ret_status_t ble_event_report_wifi_info(uint8_t result)
+{
+    return ble_event_notify(BLE_QIOT_EVENT_UP_WIFI_INFO, NULL, 0, (const char *)&result, sizeof(uint8_t));
+}
+
+ble_qiot_ret_status_t ble_event_report_wifi_connect(BLE_WIFI_MODE mode, BLE_WIFI_STATE state, uint8_t ssid_len,
+                                                    const char *ssid)
+{
+    char    buf[40] = {0};
+    uint8_t pos     = 0;
+
+    buf[pos++] = mode;
+    buf[pos++] = state;
+    buf[pos++] = 0;
+    buf[pos++] = ssid_len;
+    memcpy(buf + pos, ssid, ssid_len);
+
+    return ble_event_notify(BLE_QIOT_EVENT_UP_WIFI_CONNECT, NULL, 0, (const char *)buf, pos + ssid_len);
+}
+
+ble_qiot_ret_status_t ble_event_report_wifi_token(uint8_t result)
+{
+    return ble_event_notify(BLE_QIOT_EVENT_UP_WIFI_TOKEN, NULL, 0, (const char *)&result, sizeof(uint8_t));
+}
+
+ble_qiot_ret_status_t ble_event_report_wifi_log(const uint8_t *log, uint16_t log_size)
+{
+    return ble_event_notify(BLE_QIOT_EVENT_UP_WIFI_LOG, NULL, 0, (const char *)log, log_size);
+}
+#endif //BLE_QIOT_LLSYNC_CONFIG_NET
+
+#if BLE_QIOT_LLSYNC_STANDARD
+// get_status
+ble_qiot_ret_status_t ble_event_get_status(void)
+{
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
+    return ble_event_notify(BLE_QIOT_EVENT_UP_GET_STATUS, NULL, 0, NULL, 0);
+#else
+    ble_qiot_log_e("property" BLE_QIOT_NOT_SUPPORT_WARN);
+    return BLE_QIOT_RS_OK;
+#endif
+}
+
+// report
+ble_qiot_ret_status_t ble_event_report_property(void)
+{
+#ifdef BLE_QIOT_INCLUDE_PROPERTY
+    return ble_user_property_get_report_data();
+#else
+    ble_qiot_log_e("property" BLE_QIOT_NOT_SUPPORT_WARN);
+    return BLE_QIOT_RS_OK;
+#endif
+}
+
+#if BLE_QIOT_SECURE_BIND
+ble_qiot_ret_status_t ble_event_sync_wait_time(void)
+{
+    uint16_t time = BLE_QIOT_BIND_WAIT_TIME;
+
+    time = HTONS(time);
+    return ble_event_notify(BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME, NULL, 0, (const char*)&time, sizeof(uint16_t));
+}
+#endif //BLE_QIOT_SECURE_BIND
+
 ble_qiot_ret_status_t ble_event_post(uint8_t event_id)
 {
 #ifdef BLE_QIOT_INCLUDE_EVENT
@@ -218,8 +260,9 @@ ble_qiot_ret_status_t ble_event_post(uint8_t event_id)
 #else
     ble_qiot_log_e("event" BLE_QIOT_NOT_SUPPORT_WARN);
     return BLE_QIOT_RS_OK;
-#endif
+#endif //BLE_QIOT_INCLUDE_EVENT
 }
+#endif //BLE_QIOT_LLSYNC_STANDARD
 
 #ifdef __cplusplus
 }
