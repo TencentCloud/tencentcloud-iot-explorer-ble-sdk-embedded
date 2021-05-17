@@ -2,15 +2,13 @@
 
 为了提升您在新的硬件平台适配`LLSync SDK`的效率，本文档选择一款硬件开发板进行移植，向您展示`LLSync SDK`的源码移植适配、功能开发、功能验证的完整过程。
 
-
-
 `LLSync SDK`移植的主要流程如下。
 
 1. 硬件设备选择
 2. 控制台创建产品
 3. 获取`SDK`
 4. 移植`SDK`
-5. BLE功能开发及验证
+5. BLE功能验证
 6. 其他功能开发及验证
 
 ### 一、硬件设备选择
@@ -417,11 +415,78 @@
 
 4. 数据模版开发
 
-   `LLSync SDK`提供了`Python`脚本，可以快速将`Json`格式的数据模版转换为`C`代码模版，提升您的开发效率，请参见[脚本使用方法](https://cloud.tencent.com/document/product/1081/48398#.E6.95.B0.E6.8D.AE.E6.A8.A1.E7.89.88.E4.BB.A3.E7.A0.81.E7.94.9F.E6.88.90)。您只需要在`C`模版代码中添加应用实现即可，请参考`ESP32`的[示例代码](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded/blob/master/samples/esp32/components/qcloud_llsync/date_template/ble_qiot_template.c)。
+   `LLSync SDK`提供了`Python`脚本，可以快速将`Json`格式的数据模版转换为`C`代码模版，提升您的开发效率。脚本使用方法：
+
+   ```shell
+   iot$ python3 interpret_dt_ble.py ../example.json 
+   reading json file start
+   reading json file end
+   generate header file start
+   generate header file end
+   generate source file start
+   generate source file end
+   ```
+
+   其中，`example.json`是您的物模型`json`文本文件，命令执行结束会生成模版文件`ble_qiot_template.c`和`ble_qiot_template.h`文件，`ble_qiot_template.c`需要您做应用代码实现。示例：
+
+   物模型内容如下：
+
+   ```json
+   {
+    "id": "switch",
+    "name": "开关",
+    "desc": "",
+    "mode": "rw",
+    "define": {
+    "type": "bool",
+    "mapping": {
+    "0": "关",
+    "1": "开"
+    }
+    },
+    "required": false
+    },
+   ```
+
+   经过脚本转换后，在`ble_qiot_template.c`中对应`C`代码如下：
+
+   ```c
+   static int ble_property_switch_set(const char *data, uint16_t len)
+   {
+       return 0;
+   }
+   static int ble_property_switch_get(char *data, uint16_t buf_len)
+   {
+       return sizeof(uint8_t);
+   }
+   ```
+
+   假设该物模型对应的是灯泡开关功能，您只需要在`ble_property_switch_set`函数中进行灯泡开关控制，在`ble_property_switch_get`函数中获取灯泡实时状态即可。
+
+   ```c
+   static bool     sg_switch     = 0;
+   static int ble_property_switch_set(const char *data, uint16_t len)
+   {
+       sg_switch = data[0];
+     	if (sg_switch){
+         open_light();
+       }else{
+         close_light();
+       }
+       return 0;
+   }
+   static int ble_property_switch_get(char *data, uint16_t buf_len)
+   {
+       data[0] = sg_switch;
+       return sizeof(uint8_t);
+   }
+   ```
+
+   更多实现请您参考`ESP32`的[示例代码](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded-demo/blob/master/qcloud-iot-ble-esp32/components/qcloud_llsync/date_template/ble_qiot_template.c)。
 
 5. `SDK`编译
 
-   请参考`ESP32`的[编译脚本](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded/blob/master/samples/esp32/components/qcloud_llsync/CMakeLists.txt)。
+   `src`是源码目录，`inc`是头文件目录。不同产品的编译方式不同，您可以参考`ESP32`的[CMakeLists.txt](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded-demo/blob/master/qcloud-iot-ble-esp32/components/qcloud_llsync/CMakeLists.txt)。
 
 6. `API`调用
 
@@ -618,7 +683,12 @@
 
     请确认蓝牙服务和特征值的UUID和读写权限正确，您可以通过蓝牙测试工具验证各特征值的读写是否正常。
 
-### 六、其他功能验证
+### 六、其他功能开发及验证
 
-1. 数据模版通信能力验证请[参见](https://cloud.tencent.com/document/product/1081/50969#.E8.85.BE.E8.AE.AF.E8.BF.9E.E8.BF.9E.E5.B0.8F.E7.A8.8B.E5.BA.8F.E8.B0.83.E8.AF.95)。
-2. OTA能力验证请[参见](https://cloud.tencent.com/document/product/1081/50973)。
+1. 安全绑定功除了设备端启用功能宏(`BLE_QIOT_SECURE_BIND`)外，还需要在`腾讯云物联网开发平台`进行设置。
+
+   ![](https://main.qcloudimg.com/raw/d31bdfff4d2b899e9cbb448502be2fb7.jpg)
+
+2. 数据模版通信能力验证请[参见](https://cloud.tencent.com/document/product/1081/50969#.E8.85.BE.E8.AE.AF.E8.BF.9E.E8.BF.9E.E5.B0.8F.E7.A8.8B.E5.BA.8F.E8.B0.83.E8.AF.95)。
+
+3. OTA能力验证请[参见](https://cloud.tencent.com/document/product/1081/50973)。
