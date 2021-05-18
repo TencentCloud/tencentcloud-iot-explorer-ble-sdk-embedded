@@ -67,14 +67,17 @@ static void bt_combo_config_task(void *params)
         // call set_bt_combo_token_state set token is getted
 
         if ((WIFI_CONFIG_SUCCESS == get_bt_combo_config_state()) && (true == HAL_Wifi_IsConnected())) {
+            PUSH_LOG("bt combo report wifi connect success");
             bt_combo_report_wificonn_success();
             wifi_config_event_cb(EVENT_WIFI_CONFIG_SUCCESS, NULL);
             if (true == qiot_device_bind_get_cloud_reply_code(&bind_reply_code)) {
+                PUSH_LOG("bt combo report reply code %d", bind_reply_code);
                 bt_combo_report_bind_result(bind_reply_code);
             }
             break;
         } else if (WIFI_CONFIG_FAIL == get_bt_combo_config_state()) {
             wifi_config_event_cb(EVENT_WIFI_CONFIG_FAILED, NULL);
+            PUSH_LOG("WIFI_MQTT_CONNECT_FAILED");
             break;
         }
 
@@ -90,6 +93,7 @@ static void bt_combo_config_task(void *params)
     if (0 == time_count) {
         wifi_config_event_cb(EVENT_WIFI_CONFIG_TIMEOUT, NULL);
         bt_combo_report_bind_result(408);   //timeout
+        PUSH_LOG("WIFI_MQTT_CONNECT_TIMEOUT");
     }
 
     HAL_BTComboConfig_Stop();
@@ -141,21 +145,27 @@ int HAL_BTComboConfig_Start(void *params, WifiConfigEventCallBack event_cb)
 {
     int ret = QCLOUD_RET_SUCCESS;
 #if WIFI_PROV_BT_COMBO_CONFIG_ENABLE
+    PUSH_LOG("bt combo configure network start, state = 0");
     set_bt_combo_config_state(WIFI_CONFIG_ING);
 
     // TO-DO device platform start bt combo config
+    PUSH_LOG("start device init");
     ret = start_device_btcomboconfig();
     if (QCLOUD_RET_SUCCESS != ret) {
+        PUSH_LOG("start bt combo config failed! ret:%d", ret);
         Log_e("start bt combo config failed! ret:%d", ret);
         return ret;
     }
 
     sg_bt_combo_config_start = true;
 
+    PUSH_LOG("start bt combo configure network task");
     ret = _bt_combo_config_task_start(event_cb);
     if (QCLOUD_RET_SUCCESS != ret) {
+        PUSH_LOG("start bt combo configure network task failed");
         HAL_BTComboConfig_Stop();
     }
+    PUSH_LOG("start bt combo configure network end, ret %d", ret);
 #endif
     return ret;
 }
@@ -167,6 +177,7 @@ int HAL_BTComboConfig_Stop(void)
 {
     int ret = QCLOUD_RET_SUCCESS;
 #if WIFI_PROV_BT_COMBO_CONFIG_ENABLE
+    PUSH_LOG("bt combo configure network stop, state = 0");
     set_bt_combo_config_state(WIFI_CONFIG_ING);
 
     if (sg_bt_combo_config_start) {
@@ -175,8 +186,10 @@ int HAL_BTComboConfig_Stop(void)
         sg_bt_combo_config_start = false;
 
         // TO-DO device platform stop bt combo config
+        PUSH_LOG("start device deinit");
         ret = stop_device_btcomboconfig();
     }
+    PUSH_LOG("stop bt combo configure network end, ret %d", ret);
 #endif
     return ret;
 }
