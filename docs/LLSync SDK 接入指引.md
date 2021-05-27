@@ -23,5 +23,5 @@ SDK 使用 Github 托管，可访问 Github 下载最新版本设备端[LLSync S
 
 ## SDK使用参考
 
-请参见 [LLSync SDK使用参考](https://git.code.oa.com/qcloud-iot-terminal/iot-document/blob/master/物联网/物联网开发平台/设备开发指南/蓝牙设备开发/LLSync%20SDK使用参考.md)。
+请参见 [LLSync SDK使用参考](https://cloud.tencent.com/document/product/1081/48399)。
 
