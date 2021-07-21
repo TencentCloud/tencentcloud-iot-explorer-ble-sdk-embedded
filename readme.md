@@ -29,9 +29,7 @@ qcloud_iot_explorer_ble
   ├─inc                               # 头文件
   ├─scripts                           # 脚本
   │   ├─interpret_json_dt             # 数据模版转换
-  │       ├─config                    # ini文件，记录常量
   │       ├─src                       # 脚本源码
-  │           ├─dt_fixed_content      # C代码中的固定内容
   └─src                               # LLSync源码
       ├─core                          # 核心代码
       ├─internal_inc                  # 内部头文件

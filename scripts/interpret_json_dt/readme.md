@@ -1,26 +1,12 @@
 ## 介绍
 使用`python`脚本将后台生成的`json`格式的数据模版文件转为`c`代码文件。
 极大的减少了用户的开发工作，同时保证了终端设备，网关设备上数据定义的一致性。
-请使用`python3`解释器运行。
 
 ## 目录结构
 ```c
 interpret_json_dt
-├─config                                # 配置文件目录
-│  └─dt.conf                            # INI配置文件
 ├─src                                   # 脚本文件目录
-│  ├─dt_fixed_content                   # 固定代码文件目录 
-│  │   └─dt_ble_action                  # ble action部分固定代码 
-│  │   └─dt_ble_event                   # ble event部分固定代码
-│  │   └─dt_ble_property                # ble proerty部分固定代码 
-│  │   └─dt_ble_prototype               # ble 函数原型
-│  │   └─dt_gateway_action              # gateway action部分固定代码 
-│  │   └─dt_gateway_event               # gateway event部分固定代码 
-│  │   └─dt_gateway_property            # gateway property部分固定代码 
-│  │   └─dt_gateway_prototype           # gateway 函数原型   
-│  ├─interpret_dt_ble.py                # 转换json脚本生成ble sdk代码
-│  ├─interpret_dt_gateway.py            # 转换json脚本生成网关代码   
-│  ├─example.json                       # 示例文件           
+│  ├─interpret_dt_ble.py                # 转换json脚本生成ble sdk代码          
 ```
 
 ## 代码生成原理
@@ -50,11 +36,11 @@ interpret_json_dt
 ## 使用方法
 ### BLE SDK
 1. 从物联网平台下载数据模版`json`文件
-2. 执行`python3 interpret_dt_ble.py <your_json_file>`来生成对应的数据模版文件
+2. 执行`python interpret_dt_ble.py <your_json_file>`来生成对应的数据模版文件
 3. 按照数据特性实现`ble_qiot_template.c`中的操作函数
 4. 将生成文件拷贝到`data_template`目录编译即可
 
 ### 网关
 1. 从物联网平台下载数据模版`json`文件
-2. 执行`python3 interpret_dt_gateway.py <your_json_file>`来生成对应的数据模版文件
+2. 执行`python interpret_dt_gateway.py <your_json_file>`来生成对应的数据模版文件
 3. 将生成文件拷贝SDK编译即可。

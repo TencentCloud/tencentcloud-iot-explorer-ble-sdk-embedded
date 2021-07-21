@@ -66,6 +66,7 @@ int ble_lldata_parse_tlv(const char *buf, int buf_len, e_ble_tlv *tlv)
             break;
         case BLE_QIOT_DATA_TYPE_STRUCT:
         case BLE_QIOT_DATA_TYPE_STRING:
+		case BLE_QIOT_DATA_TYPE_ARRAY:
             if (buf_len < BLE_QIOT_MIN_STRING_TYPE_LEN) {
                 ble_qiot_log_e("lldata len invalid, type: %d, len: %d", tlv->type, buf_len);
                 return -1;
@@ -149,8 +150,8 @@ ble_qiot_ret_status_t ble_user_property_get_report_data(void)
 
         data_buf[data_len++] = BLE_QIOT_PACKAGE_TLV_HEAD(property_type, property_id);
         data_buf_off         = data_len;
-        if ((BLE_QIOT_DATA_TYPE_STRING == property_type) || (BLE_QIOT_DATA_TYPE_STRUCT == property_type)) {
-            // reserved 2 bytes for string/struct length
+        if ((BLE_QIOT_DATA_TYPE_STRING == property_type) || (BLE_QIOT_DATA_TYPE_STRUCT == property_type) || (BLE_QIOT_DATA_TYPE_ARRAY == property_type)) {
+            // reserved 2 bytes for string/struct/array length
             data_buf_off += BLE_QIOT_STRING_TYPE_LEN;
         }
         property_len = ble_user_property_get_data_by_id(property_id, (char *)&data_buf[data_buf_off],
@@ -163,7 +164,7 @@ ble_qiot_ret_status_t ble_user_property_get_report_data(void)
             data_buf[data_len] = '0';
             ble_qiot_log_d("property: %d no data to post", property_id);
         } else {
-            if ((BLE_QIOT_DATA_TYPE_STRING == property_type) || (BLE_QIOT_DATA_TYPE_STRUCT == property_type)) {
+            if ((BLE_QIOT_DATA_TYPE_STRING == property_type) || (BLE_QIOT_DATA_TYPE_STRUCT == property_type) || (BLE_QIOT_DATA_TYPE_ARRAY == property_type)) {
                 // filling the payload length
                 type_len = HTONS(property_len);
                 memcpy(data_buf + data_len, &type_len, sizeof(uint16_t));
