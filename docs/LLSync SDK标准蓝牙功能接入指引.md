@@ -71,7 +71,7 @@
    // 配置为1，建立蓝牙连接后小程序尝试设置MTU，通过ble_get_user_data_mtu_size接口获取；配置为0，默认MTU为23。
    #define BLE_QIOT_REMOTE_SET_MTU 			(1)
    
-   // 配置为1，使能LLSync标准蓝牙，LLSync配网功能和LLSync标准蓝牙功能暂时不支持同时启用。
+   // 配置为1，使能LLSync标准蓝牙
    #define BLE_QIOT_LLSYNC_STANDARD    	(1)
    
    // 配置为1，小程序发起绑定请求后需要设备端通过UI操作确认。配置为0，绑定不需要设备端确认。

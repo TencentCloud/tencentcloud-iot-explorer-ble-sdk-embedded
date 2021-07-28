@@ -115,7 +115,7 @@ int ble_get_my_broadcast_data(char *out_buf, int buf_len)
     } else
 #endif //BLE_QIOT_LLSYNC_STANDARD
     {
-#if BLE_QIOT_LLSYNC_CONFIG_NET
+#if BLE_QIOT_LLSYNC_CONFIG_NET && !BLE_QIOT_LLSYNC_DUAL_COM
         out_buf[ret_len++] = BLE_QIOT_LLSYNC_PROTOCOL_VERSION;
 #endif // BLE_QIOT_LLSYNC_CONFIG_NET
         // 1 bytes state + 6 bytes mac + 10 bytes product id
@@ -210,7 +210,7 @@ int ble_bind_get_authcode(const char *bind_data, uint16_t data_len, char *out_bu
     qcloud_iot_utils_base64decode(secret, sizeof(secret), (size_t *)&secret_len,
                                   (const unsigned char *)sg_device_info.psk, sizeof(sg_device_info.psk));
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "bind sign in", sign_info, sign_info_len);
-    utils_hmac_sha1((const char *)sign_info, sign_info_len, out_sign, (const char *)secret, secret_len);
+    llsync_utils_hmac_sha1((const char *)sign_info, sign_info_len, out_sign, (const char *)secret, secret_len);
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "bind sign out", out_sign, sizeof(out_sign));
 
     // return [20 bytes sign] + [x bytes device_name]
@@ -270,7 +270,7 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     snprintf(sign_info + sign_info_len, sizeof(sign_info) - sign_info_len, "%d", timestamp);
     sign_info_len = strlen(sign_info + sign_info_len);
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign in", sign_info, sign_info_len);
-    utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
+    llsync_utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign out", out_sign, SHA1_DIGEST_SIZE);
     if (0 != memcmp(&conn_data_aligned.sign_info, out_sign, SHA1_DIGEST_SIZE)) {
         ble_qiot_log_e("llsync invalid connect sign");
@@ -291,7 +291,7 @@ int ble_conn_get_authcode(const char *conn_data, uint16_t data_len, char *out_bu
     sign_info_len += strlen(sg_device_info.device_name);
 
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "conn sign in", sign_info, sign_info_len);
-    utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
+    llsync_utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "conn sign out", out_sign, sizeof(out_sign));
 
     // return authcode
@@ -320,7 +320,7 @@ int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *ou
     // valid sign
     memcpy(sign_info, BLE_UNBIND_REQUEST_STR, BLE_UNBIND_REQUEST_STR_LEN);
     sign_info_len = BLE_UNBIND_REQUEST_STR_LEN;
-    utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
+    llsync_utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "valid sign out", out_sign, SHA1_DIGEST_SIZE);
 
     if (0 != memcmp(((ble_unbind_data *)unbind_data)->sign_info, out_sign, SHA1_DIGEST_SIZE)) {
@@ -334,7 +334,7 @@ int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *ou
 
     memcpy(sign_info, BLE_UNBIND_RESPONSE, strlen(BLE_UNBIND_RESPONSE));
     sign_info_len += BLE_UNBIND_RESPONSE_STR_LEN;
-    utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
+    llsync_utils_hmac_sha1(sign_info, sign_info_len, out_sign, sg_core_data.local_psk, sizeof(sg_core_data.local_psk));
     ble_qiot_log_hex(BLE_QIOT_LOG_LEVEL_INFO, "unbind auth code", out_sign, SHA1_DIGEST_SIZE);
 
     memset(out_buf, 0, buf_len);
@@ -343,8 +343,7 @@ int ble_unbind_get_authcode(const char *unbind_data, uint16_t data_len, char *ou
 
     return ret_len;
 }
-
-#endif
+#endif //BLE_QIOT_LLSYNC_STANDARD
 
 ble_qiot_ret_status_t ble_init_flash_data(void)
 {

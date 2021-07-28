@@ -29,7 +29,6 @@ qcloud_iot_explorer_ble
   ├─inc                               # 头文件
   ├─scripts                           # 脚本
   │   ├─interpret_json_dt             # 数据模版转换
-  │       ├─src                       # 脚本源码
   └─src                               # LLSync源码
       ├─core                          # 核心代码
       ├─internal_inc                  # 内部头文件
@@ -37,5 +36,11 @@ qcloud_iot_explorer_ble
 ```
 
 ## 移植指引
+
+`LLSync`提供了三种功能：
+
+* `BLE`通信功能，支持`腾讯连连小程序`通过`BLE`控制`BLE`设备。
+* `BLE`配网能力，支持`腾讯连连小程序`通过`BLE`给`WIFI-BLE`设备配置网络。
+* 双路通信能力，支持`腾讯连连小程序`通过`BLE`或`Wi-Fi`控制`WIFI-BLE`设备。
 
 请参见 [移植指引](./docs/LLSync%20SDK%20接入指引.md)

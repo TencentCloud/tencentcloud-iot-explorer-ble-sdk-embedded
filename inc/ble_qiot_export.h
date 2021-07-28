@@ -25,13 +25,16 @@ extern "C" {
         0xe2, 0xa4, 0x1b, 0x54, 0x93, 0xe4, 0x6a, 0xb5, 0x20, 0x4e, 0xd0, 0x65, 0x00, 0x00, 0x00, 0x00 \
     }
 
-// llsync services uuid
+#if BLE_QIOT_LLSYNC_DUAL_COM
+#define IOT_BLE_UUID_SERVICE 0xFFE8
+#else
 #if BLE_QIOT_LLSYNC_STANDARD
-    #define IOT_BLE_UUID_SERVICE 0xFFE0
+#define IOT_BLE_UUID_SERVICE 0xFFE0
 #endif //BLE_QIOT_LLSYNC_STANDARD
 #if BLE_QIOT_LLSYNC_CONFIG_NET
-    #define IOT_BLE_UUID_SERVICE 0xFFF0
+#define IOT_BLE_UUID_SERVICE 0xFFF0
 #endif //BLE_QIOT_LLSYNC_CONFIG_NET
+#endif
 
 // characteristics uuid
 #define IOT_BLE_UUID_DEVICE_INFO 0xFFE1  // used to connection and identity authentication
@@ -96,12 +99,16 @@ const qiot_service_init_s *ble_get_qiot_services(void);
  */
 ble_qiot_ret_status_t ble_qiot_explorer_init(void);
 
+enum{
+    E_REPORT_DEVNAME = 0,
+    E_REPORT_DEVINFO = 1,
+};
 /**
  * @brief  report mtu of the device to the server
  * @note   report mtu to the server to set the mtu
  * @return BLE_QIOT_RS_OK is success, other is error
  */
-ble_qiot_ret_status_t ble_event_report_device_info(void);
+ble_qiot_ret_status_t ble_event_report_device_info(uint8_t type);
 
 /**
  * @brief  sync the device mtu to The Tencent Lianlian.

@@ -385,7 +385,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
             conn_flag = false;
             ble_qiot_log_i("get msg connect success");
             llsync_connection_state_set(E_LLSYNC_CONNECTED);
-            ret = ble_event_report_device_info();
+            ret = ble_event_report_device_info(E_REPORT_DEVINFO);
             break;
         case E_DEV_MSG_CONN_FAIL:
             ble_qiot_log_i("get msg connect fail");
@@ -410,7 +410,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
 #if BLE_QIOT_LLSYNC_CONFIG_NET
         case E_DEV_MSG_GET_DEV_INFO:
             llsync_connection_state_set(E_LLSYNC_CONNECTED);
-            ret = ble_event_report_device_info();
+            ret = ble_event_report_device_info(E_REPORT_DEVNAME);
             break;
         case E_DEV_MSG_SET_WIFI_MODE:
             ret = ble_combo_wifi_mode_set(p_data[1]);

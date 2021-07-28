@@ -27,7 +27,7 @@ extern "C" {
 #include "ble_qiot_llsync_event.h"
 
 // report device info
-ble_qiot_ret_status_t ble_event_report_device_info(void)
+ble_qiot_ret_status_t ble_event_report_device_info(uint8_t type)
 {
     char     device_info[56] = {0};  // 1 byte llsync proto version + 2 bytes mtu size + 1 byte length of develop version
     uint16_t mtu_size       = 0;
@@ -39,12 +39,13 @@ ble_qiot_ret_status_t ble_event_report_device_info(void)
     mtu_size       = HTONS(mtu_size);
     device_info[0] = BLE_QIOT_LLSYNC_PROTOCOL_VERSION;
     memcpy(&device_info[1], &mtu_size, sizeof(mtu_size));
-#if BLE_QIOT_LLSYNC_CONFIG_NET
-    device_info[3] = (char)ble_get_device_name(&device_info[4]);
-#else
-    device_info[3] = (char)strlen(BLE_QIOT_USER_DEVELOPER_VERSION);
-    memcpy(&device_info[4], BLE_QIOT_USER_DEVELOPER_VERSION, device_info[3]);
-#endif //BLE_QIOT_LLSYNC_CONFIG_NET
+    if (type == E_REPORT_DEVNAME){
+        device_info[3] = (char)ble_get_device_name(&device_info[4]);
+    }else{
+        device_info[3] = (char)strlen(BLE_QIOT_USER_DEVELOPER_VERSION);
+        memcpy(&device_info[4], BLE_QIOT_USER_DEVELOPER_VERSION, device_info[3]);
+    }
+
     return ble_event_notify(BLE_QIOT_EVENT_UP_REPORT_MTU, NULL, 0, device_info, 4 + device_info[3]);
 }
 
