@@ -1175,7 +1175,7 @@ def main():
     if config_dir:
         config_dir += "/"
 
-    f = open(config_path, "r")
+    f = open(config_path, "rb")
     try:
         thingmodel = json.load(f)
         if TEMPLATE_CONSTANTS.PROPERTIES not in thingmodel:

@@ -34,11 +34,11 @@ static ble_event_slice_t sg_ble_slice_data;
 
 #if BLE_QIOT_BUTTON_BROADCAST
 static ble_timer_t sg_bind_timer = NULL;
-#endif //BLE_QIOT_BUTTON_BROADCAST
+#endif  // BLE_QIOT_BUTTON_BROADCAST
 
 #if BLE_QIOT_SECURE_BIND
 static ble_bind_data sg_bind_auth_data;
-#endif //BLE_QIOT_SECURE_BIND
+#endif  // BLE_QIOT_SECURE_BIND
 
 static qiot_service_init_s service_info = {
     .service_uuid16  = IOT_BLE_UUID_SERVICE,
@@ -63,12 +63,12 @@ static qiot_service_init_s service_info = {
             .on_write        = ble_lldata_write_cb,
         },
     .ota =
-    {
-        .uuid16          = IOT_BLE_UUID_OTA,
-        .gatt_char_props = GATT_CHAR_WRITE_WO_RESP,
-        .on_write        = ble_ota_write_cb,
-    },
-#endif //BLE_QIOT_LLSYNC_STANDARD
+        {
+            .uuid16          = IOT_BLE_UUID_OTA,
+            .gatt_char_props = GATT_CHAR_WRITE_WO_RESP,
+            .on_write        = ble_ota_write_cb,
+        },
+#endif  // BLE_QIOT_LLSYNC_STANDARD
 };
 
 const qiot_service_init_s *ble_get_qiot_services(void)
@@ -104,7 +104,7 @@ ble_qiot_ret_status_t ble_secure_bind_user_confirm(ble_qiot_secure_bind_t choose
     flag = choose << 5;
     return ble_event_notify2((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, flag, NULL, 0, out_buf, ret_len);
 }
-#endif //BLE_QIOT_SECURE_BIND
+#endif  // BLE_QIOT_SECURE_BIND
 
 void ble_lldata_write_cb(const uint8_t *buf, uint16_t len)
 {
@@ -116,7 +116,7 @@ void ble_ota_write_cb(const uint8_t *buf, uint16_t len)
     (void)ble_ota_msg_handle((const char *)buf, len);
 }
 
-#endif //BLE_QIOT_LLSYNC_STANDARD
+#endif  // BLE_QIOT_LLSYNC_STANDARD
 
 #if BLE_QIOT_BUTTON_BROADCAST
 static void ble_bind_timer_callback(void *param)
@@ -128,7 +128,7 @@ static void ble_bind_timer_callback(void *param)
         ble_qiot_log_i("stop advertising");
     }
 }
-#endif //BLE_QIOT_BUTTON_BROADCAST
+#endif  // BLE_QIOT_BUTTON_BROADCAST
 
 ble_qiot_ret_status_t ble_qiot_advertising_start(void)
 {
@@ -150,7 +150,7 @@ ble_qiot_ret_status_t ble_qiot_advertising_start(void)
                 return BLE_QIOT_RS_ERR;
             }
         }
-#endif //BLE_QIOT_BUTTON_BROADCAST
+#endif  // BLE_QIOT_BUTTON_BROADCAST
 
         ble_advertising_stop();
 
@@ -164,7 +164,7 @@ ble_qiot_ret_status_t ble_qiot_advertising_start(void)
 
 #if BLE_QIOT_BUTTON_BROADCAST
         ble_timer_start(sg_bind_timer, BLE_QIOT_BIND_TIMEOUT);
-#endif //BLE_QIOT_BUTTON_BROADCAST
+#endif  // BLE_QIOT_BUTTON_BROADCAST
     } else if (E_LLSYNC_BIND_WAIT == llsync_bind_state_get()) {
         ble_advertising_stop();
         adv_data_len = ble_get_my_broadcast_data((char *)adv_data, sizeof(adv_data));
@@ -177,7 +177,7 @@ ble_qiot_ret_status_t ble_qiot_advertising_start(void)
 #if BLE_QIOT_BUTTON_BROADCAST
         ble_timer_stop(sg_bind_timer);
         ble_timer_start(sg_bind_timer, BLE_QIOT_BIND_TIMEOUT);
-#endif //BLE_QIOT_BUTTON_BROADCAST
+#endif  // BLE_QIOT_BUTTON_BROADCAST
     } else if (E_LLSYNC_BIND_SUCC == llsync_bind_state_get()) {
         ble_advertising_stop();
         adv_data_len = ble_get_my_broadcast_data((char *)adv_data, sizeof(adv_data));
@@ -236,7 +236,7 @@ void ble_gap_disconnect_cb(void)
     ble_connection_state_set(E_BLE_DISCONNECTED);
 #if BLE_QIOT_SUPPORT_OTA
     ble_ota_stop();
-#endif //BLE_QIOT_SUPPORT_OTA
+#endif  // BLE_QIOT_SUPPORT_OTA
 }
 
 static uint8_t ble_msg_type_header_len(uint8_t type)
@@ -249,7 +249,7 @@ static uint8_t ble_msg_type_header_len(uint8_t type)
 }
 
 static int8_t ble_package_slice_data(uint8_t data_type, uint8_t flag, uint8_t header_len, const char *in_buf,
-                                      int in_len)
+                                     int in_len)
 {
     if (!BLE_QIOT_IS_SLICE_HEADER(flag)) {
         if (!sg_ble_slice_data.have_data) {
@@ -297,15 +297,15 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
 {
     POINTER_SANITY_CHECK(in_buf, BLE_QIOT_RS_ERR_PARA);
     uint8_t  ch;
-    char     out_buf[80] = {0};
-    char *   p_data      = NULL;
-    int      p_data_len  = 0;
-    int      ret_len     = 0;
-    uint16_t tmp_len     = 0;
-    uint8_t  header_len  = 0;
-    int      ret         = BLE_QIOT_RS_OK;
-    char *   p_ssid      = NULL;
-    char *   p_passwd    = NULL;
+    char     out_buf[100] = {0};
+    char *   p_data       = NULL;
+    int      p_data_len   = 0;
+    int      ret_len      = 0;
+    uint16_t tmp_len      = 0;
+    uint8_t  header_len   = 0;
+    int      ret          = BLE_QIOT_RS_OK;
+    char *   p_ssid       = NULL;
+    char *   p_passwd     = NULL;
     // This flag is use to avoid attacker jump "ble_conn_get_authcode()" step, then
     // send 'E_DEV_MSG_CONN_SUCC' msg, and device straightly set 'E_LLSYNC_CONNECTED' flag.
     // This behavior make signature check useless lead to risk.
@@ -338,6 +338,18 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
     switch (ch) {
 #if BLE_QIOT_LLSYNC_STANDARD
         case E_DEV_MSG_SYNC_TIME:
+#if BLE_QIOT_DYNREG_ENABLE
+            if (llsync_need_dynreg()) {
+                ret_len = ble_dynreg_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
+                if (ret_len <= 0) {
+                    ble_qiot_log_e("get dynreg authcode failed");
+                    ret = BLE_QIOT_RS_ERR;
+                    break;
+                }
+                ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_DYNREG_SIGN, NULL, 0, out_buf, ret_len);
+                break;
+            }
+#endif
 #if BLE_QIOT_SECURE_BIND
             ret = ble_secure_bind_handle(p_data + 3, p_data_len - 3);
 #else
@@ -348,7 +360,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
                 break;
             }
             ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, NULL, 0, out_buf, ret_len);
-#endif //BLE_QIOT_SECURE_BIND
+#endif  // BLE_QIOT_SECURE_BIND
             break;
         case E_DEV_MSG_CONN_VALID:
             ret_len = ble_conn_get_authcode(p_data + 3, p_data_len - 3, out_buf, sizeof(out_buf));
@@ -402,11 +414,32 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
             break;
         case E_DEV_MSG_BIND_TIMEOUT:
             ble_qiot_log_i("get msg bind result: %d", p_data[1]);
-        #if (1 == BLE_QIOT_SECURE_BIND)
+#if BLE_QIOT_SECURE_BIND
             ble_secure_bind_user_notify(p_data[1]);
-        #endif
+#endif
             break;
-#endif //BLE_QIOT_LLSYNC_STANDARD
+#if BLE_QIOT_DYNREG_ENABLE
+        case E_DEV_MSG_DYNREG:
+            ret = ble_dynreg_parse_psk(p_data + 5, p_data[4]);
+            if (ret < 0) {
+                break;
+            }
+#if BLE_QIOT_SECURE_BIND
+            ret = ble_secure_bind_handle(p_data + 5 + p_data[4], p_data_len - 5 - p_data[4]);
+#else
+            ret_len =
+                ble_bind_get_authcode(p_data + 5 + p_data[4], p_data_len - 5 - p_data[4], out_buf, sizeof(out_buf));
+            if (ret_len <= 0) {
+                ble_qiot_log_e("get bind authcode failed");
+                ret = BLE_QIOT_RS_ERR;
+                break;
+            }
+            ret = ble_event_notify((uint8_t)BLE_QIOT_EVENT_UP_BIND_SIGN_RET, NULL, 0, out_buf, ret_len);
+#endif  // BLE_QIOT_SECURE_BIND
+            break;
+#endif  // BLE_QIOT_DYNREG_ENABLE
+#endif  // BLE_QIOT_LLSYNC_STANDARD
+
 #if BLE_QIOT_LLSYNC_CONFIG_NET
         case E_DEV_MSG_GET_DEV_INFO:
             llsync_connection_state_set(E_LLSYNC_CONNECTED);
@@ -417,7 +450,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
             break;
         case E_DEV_MSG_SET_WIFI_INFO:
             // 1 byte ssid len + N bytes ssid + 1 byte pwd len + N bytes pwd
-            p_ssid = &p_data[3];
+            p_ssid   = &p_data[3];
             p_passwd = &p_ssid[p_ssid[0] + 1];
             ret = ble_combo_wifi_info_set((const char *)&p_ssid[1], p_ssid[0], (const char *)&p_passwd[1], p_passwd[0]);
             break;
@@ -430,7 +463,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
         case E_DEV_MSG_GET_DEV_LOG:
             ret = ble_combo_wifi_log_get();
             break;
-#endif
+#endif //BLE_QIOT_LLSYNC_CONFIG_NET
         case E_DEV_MSG_SET_MTU_RESULT:
             ble_inform_mtu_result(p_data + 1, p_data_len - 1);
             break;
@@ -625,9 +658,9 @@ int ble_ota_msg_handle(const char *buf, uint16_t len)
 {
     return BLE_QIOT_RS_OK;
 }
-#endif  //BLE_QIOT_SUPPORT_OTA
+#endif  // BLE_QIOT_SUPPORT_OTA
 
-#endif //BLE_QIOT_LLSYNC_STANDARD
+#endif  // BLE_QIOT_LLSYNC_STANDARD
 
 #ifdef __cplusplus
 }

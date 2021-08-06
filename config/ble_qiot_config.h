@@ -20,7 +20,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdint.h>
 
-#define BLE_QIOT_SDK_VERSION "1.6.0"  // sdk version
+#define BLE_QIOT_SDK_VERSION "1.6.1"  // sdk version
 #define BLE_QIOT_SDK_DEBUG   0        // sdk debug
 
 // the device broadcast is controlled by the user, but we provide a mechanism to help the device save more power.
@@ -68,6 +68,8 @@ extern "C" {
 
 #define BLE_QIOT_LLSYNC_STANDARD    1   // support llsync standard
 #if BLE_QIOT_LLSYNC_STANDARD
+    // dynamic register
+    #define BLE_QIOT_DYNREG_ENABLE  0
     // some users hope to confirm on the device before the binding, set BLE_QIOT_SECURE_BIND is 1 to enable the secure
     // binding and enable secure bind in iot-explorer console. When the server is bound, the device callback ble_secure_bind_user_cb()
     // will be triggered, the user agree or refuse connect by ble_secure_bind_user_confirm(). If the device does not respond

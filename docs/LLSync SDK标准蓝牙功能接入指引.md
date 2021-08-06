@@ -74,6 +74,9 @@
    // 配置为1，使能LLSync标准蓝牙
    #define BLE_QIOT_LLSYNC_STANDARD    	(1)
    
+   // 配置为1，使能动态注册功能
+   #define BLE_QIOT_DYNREG_ENABLE  			(1)
+   
    // 配置为1，小程序发起绑定请求后需要设备端通过UI操作确认。配置为0，绑定不需要设备端确认。
    #define BLE_QIOT_SECURE_BIND 					(0)
    
@@ -148,9 +151,28 @@
        memcpy(psk, SECRET_KEY, strlen(SECRET_KEY));
        return 0;
    }
+   当启用动态注册，并且没有设备密钥时，psk使用0xFF填充，SDK通过psk内容判断设备使用需要动态注册。
    */
-   
    int ble_get_psk(char *psk);
+   
+   /* 存储设备密钥，启用动态注册功能时实现。示例：
+   int ble_set_psk(const char *psk, uint8_t len)
+   {
+       memcpy(sg_device_secret, psk, BLE_QIOT_PSK_LEN);
+       return 0;
+   }
+   */
+   int ble_set_psk(const char *psk, uint8_t len);
+   
+   /* 获取产品密钥，启用动态注册功能时实现。示例：
+   #define PRODUCT_KEY "LMygrr2b6npAQM2vl5kLSCQt"
+   int ble_get_product_key(char *product_secret)
+   {
+       memcpy(product_secret, PRODUCT_KEY, strlen(PRODUCT_KEY));
+       return 0;
+   }
+   */
+   int ble_get_product_key(char *product_secret);
    
    /* 获取设备MAC地址，示例：
    int ble_get_mac(char *mac)

@@ -74,7 +74,7 @@ ble_qiot_ret_status_t ble_event_notify2(uint8_t type, uint8_t length_flag, uint8
     uint8_t send_buf[BLE_QIOT_EVENT_BUF_SIZE] = {0};
 
     if (!llsync_is_connected() && type != BLE_QIOT_EVENT_UP_BIND_SIGN_RET && type != BLE_QIOT_EVENT_UP_CONN_SIGN_RET &&
-        type != BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET && type != BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME) {
+        type != BLE_QIOT_EVENT_UP_UNBIND_SIGN_RET && type != BLE_QIOT_EVENT_UP_SYNC_WAIT_TIME && type != BLE_QIOT_EVENT_UP_DYNREG_SIGN) {
         ble_qiot_log_e("upload msg negate, device not connected");
         return BLE_QIOT_RS_ERR;
     }

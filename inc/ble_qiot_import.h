@@ -137,9 +137,26 @@ int ble_get_device_name(char *device_name);
  * @brief  get device secret
  * @param  psk         the buf storage secret, 24 bytes permanent
  * @return 0 is success, other is error
+ * @note   filled with 0xFF if dynamic register is enable and no device secret
  */
 int ble_get_psk(char *psk);
 
+#if BLE_QIOT_DYNREG_ENABLE
+/**
+ * @brief  get device secret
+ * @param  psk         device secret
+ * @param  len         length of the psk
+ * @return 0 is success, other is error
+ */
+int ble_set_psk(const char *psk, uint8_t len);
+
+/**
+ * @brief  get device product secret
+ * @param  product_secret  the buf storage product secret, 24 bytes permanent
+ * @return 0 is success, other is error
+ */
+int ble_get_product_key(char *product_secret);
+#endif
 /**
  * @brief write data to flash
  * @param flash_addr write address in flash
