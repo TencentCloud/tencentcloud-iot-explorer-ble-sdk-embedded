@@ -392,6 +392,11 @@ static ble_qiot_ret_status_t ble_qiot_ota_data_saved(char *data, uint16_t data_l
 
     // write data to flash if the buffer overflow
     if ((data_len + sg_ota_data_buf_size) > sizeof(sg_ota_data_buf)) {
+        memcpy(sg_ota_data_buf + sg_ota_data_buf_size, data, sizeof(sg_ota_data_buf) - sg_ota_data_buf_size);
+        ble_ota_download_size_inc((sizeof(sg_ota_data_buf) - sg_ota_data_buf_size));
+        data += (sizeof(sg_ota_data_buf) - sg_ota_data_buf_size);
+        data_len -= (sizeof(sg_ota_data_buf) - sg_ota_data_buf_size);
+        sg_ota_data_buf_size += (sizeof(sg_ota_data_buf) - sg_ota_data_buf_size);
         // ble_qiot_log_e("data buf overflow, write data");
         if (BLE_QIOT_RS_OK != ble_ota_write_data_to_flash()) {
             return BLE_QIOT_RS_ERR;

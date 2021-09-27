@@ -20,7 +20,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdint.h>
 
-#define BLE_QIOT_SDK_VERSION "1.6.1"  // sdk version
+#define BLE_QIOT_SDK_VERSION "1.6.2"  // sdk version
 #define BLE_QIOT_SDK_DEBUG   0        // sdk debug
 
 // the device broadcast is controlled by the user, but we provide a mechanism to help the device save more power.

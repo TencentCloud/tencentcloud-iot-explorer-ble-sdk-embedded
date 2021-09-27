@@ -36,6 +36,7 @@ ble_qiot_ret_status_t ble_event_report_device_info(uint8_t type)
     mtu_size = LLSYNC_MTU_SET_MASK;
 #endif //BLE_QIOT_REMOTE_SET_MTU
     mtu_size |= ble_get_user_data_mtu_size();
+    llsync_mtu_update(ble_get_user_data_mtu_size());
     mtu_size       = HTONS(mtu_size);
     device_info[0] = BLE_QIOT_LLSYNC_PROTOCOL_VERSION;
     memcpy(&device_info[1], &mtu_size, sizeof(mtu_size));
