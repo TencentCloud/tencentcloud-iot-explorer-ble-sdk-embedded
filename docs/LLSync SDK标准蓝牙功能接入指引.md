@@ -69,6 +69,7 @@
    #define BLE_QIOT_EVENT_BUF_SIZE 			(23)
    
    // 配置为1，建立蓝牙连接后小程序尝试设置MTU，通过ble_get_user_data_mtu_size接口获取；配置为0，默认MTU为23。
+   // 请参考<<LLSync蓝牙设备接入协议>>中MTU部分描述。
    #define BLE_QIOT_REMOTE_SET_MTU 			(1)
    
    // 配置为1，使能LLSync标准蓝牙
