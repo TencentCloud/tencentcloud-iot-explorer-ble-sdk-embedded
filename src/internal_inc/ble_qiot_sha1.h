@@ -90,4 +90,7 @@ void utils_sha1_process(iot_sha1_context *ctx, const unsigned char data[64]);
  */
 void utils_sha1(const unsigned char *input, size_t ilen, unsigned char output[20]);
 
+#ifdef __cplusplus
+}
+#endif
 #endif  // QCLOUD_BLE_LLSYNC_BLE_QIOT_SHA1_H
