@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CONFIG_H_
-#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CONFIG_H_
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_CONFIG_INC_BLE_QIOT_CONFIG_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_CONFIG_INC_BLE_QIOT_CONFIG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,9 +71,9 @@ extern "C" {
     // dynamic register
     #define BLE_QIOT_DYNREG_ENABLE  0
     // some users hope to confirm on the device before the binding, set BLE_QIOT_SECURE_BIND is 1 to enable the secure
-    // binding and enable secure bind in iot-explorer console. When the server is bound, the device callback 
-    // ble_secure_bind_user_cb() will be triggered, the user agree or refuse connect by ble_secure_bind_user_confirm(). 
-    // If the device does not respond and the connection timeout, or the user cancel the connection in Tencent Lianlian, 
+    // binding and enable secure bind in iot-explorer console. When the server is bound, the device callback
+    // ble_secure_bind_user_cb() will be triggered, the user agree or refuse connect by ble_secure_bind_user_confirm().
+    // If the device does not respond and the connection timeout, or the user cancel the connection in Tencent Lianlian,
     // a notify will received in function ble_secure_bind_user_notify().
     #define BLE_QIOT_SECURE_BIND 0
     #if BLE_QIOT_SECURE_BIND
@@ -102,8 +102,8 @@ extern "C" {
         // the time spent for device reboot, the server waiting the device version reported after upgrade. unit: second
         #define BLE_QIOT_REBOOT_TIME      20
         #define BLE_QIOT_PACKAGE_INTERVAL 0x05  // the interval between two packages send by the server
-        // the package from the server will storage in the buffer, write the buffer to the flash at one time when the 
-        // buffer overflow. reduce the flash write can speed up file download, we suggest the BLE_QIOT_OTA_BUF_SIZE is 
+        // the package from the server will storage in the buffer, write the buffer to the flash at one time when the
+        // buffer overflow. reduce the flash write can speed up file download, we suggest the BLE_QIOT_OTA_BUF_SIZE is
         // multiples of BLE_QIOT_PACKAGE_LENGTH and equal flash page size
         #define BLE_QIOT_OTA_BUF_SIZE (4096)
     #endif  // BLE_QIOT_SUPPORT_OTA
@@ -119,4 +119,4 @@ extern "C" {
 }
 #endif
 
-#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CONFIG_H_
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_CONFIG_INC_BLE_QIOT_CONFIG_H_

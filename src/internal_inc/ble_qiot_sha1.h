@@ -93,4 +93,4 @@ void utils_sha1(const unsigned char *input, size_t ilen, unsigned char output[20
 #ifdef __cplusplus
 }
 #endif
-#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_SHA1_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_SHA1_H_

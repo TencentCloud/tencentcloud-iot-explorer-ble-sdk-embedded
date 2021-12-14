@@ -30,7 +30,7 @@ extern "C" {
 //  ========Platform================================  //
 #define UTILS_AES_C
 #define UTILS_CIPHER_MODE_CBC
-//#define UTILS_SELF_TEST
+// #define UTILS_SELF_TEST
 
 #define UTILS_ERR_PLATFORM_HW_ACCEL_FAILED     -0x0070 /**< Hardware accelerator failed */
 #define UTILS_ERR_PLATFORM_FEATURE_UNSUPPORTED -0x0072 /**< The requested feature is not supported by the platform */
@@ -275,7 +275,7 @@ UTILS_DEPRECATED void utils_aes_decrypt(utils_aes_context *ctx, const unsigned c
                                         unsigned char output[16]);
 
 #undef UTILS_DEPRECATED
-#endif /* !UTILS_DEPRECATED_REMOVED */
+#endif  /* !UTILS_DEPRECATED_REMOVED */
 
 int aes_sample(int verbose);
 
@@ -285,4 +285,4 @@ int utils_aes_cbc(uint8_t *pInData, uint32_t datalen, uint8_t *pOutData, uint32_
 #ifdef __cplusplus
 }
 #endif
-#endif //TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_AES_H_
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_AES_H_

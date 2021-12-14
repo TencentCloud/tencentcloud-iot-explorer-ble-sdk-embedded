@@ -9,8 +9,8 @@
  * limitations under the License.
  *
  */
-#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_IMPORT_H_
-#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_IMPORT_H_
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INC_BLE_QIOT_IMPORT_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INC_BLE_QIOT_IMPORT_H_
 
 #if defined(__cplusplus)
 extern "C" {
@@ -239,7 +239,7 @@ ble_qiot_ret_status_t ble_combo_wifi_mode_set(BLE_WIFI_MODE mode);
  * @param passwd_len the length of password
  * @return BLE_QIOT_RS_OK is success, other is error
  */
-ble_qiot_ret_status_t ble_combo_wifi_info_set(const char *ssid, uint8_t ssid_len, 
+ble_qiot_ret_status_t ble_combo_wifi_info_set(const char *ssid, uint8_t ssid_len,
                                                 const char *passwd, uint8_t passwd_len);
 
 /**
@@ -269,4 +269,4 @@ ble_qiot_ret_status_t ble_combo_wifi_log_get(void);
 }
 #endif
 
-#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_IMPORT_H_
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INC_BLE_QIOT_IMPORT_H_
