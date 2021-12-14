@@ -9,8 +9,8 @@
  * limitations under the License.
  *
  */
-#ifndef QCLOUD_BLE_QIOT_LOG_H
-#define QCLOUD_BLE_QIOT_LOG_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_LOG_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_LOG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,4 +100,4 @@ void ble_qiot_log_hex(e_ble_qiot_log_level level, const char *hex_name, const ch
 #ifdef __cplusplus
 }
 #endif
-#endif  // QCLOUD_BLE_QIOT_LOG_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_LOG_H_

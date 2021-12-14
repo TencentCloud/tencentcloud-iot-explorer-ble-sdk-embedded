@@ -13,8 +13,8 @@
  *
  */
 
-#ifndef QCLOUD_BLE_QIOT_HMAC_H
-#define QCLOUD_BLE_QIOT_HMAC_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_HMAC_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_HMAC_H_
 
 #if defined(__cplusplus)
 extern "C" {
@@ -29,4 +29,4 @@ void llsync_utils_hmac_sha1(const char *msg, int msg_len, char *digest, const ch
 #if defined(__cplusplus)
 }
 #endif
-#endif  // QCLOUD_BLE_QIOT_HMAC_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_HMAC_H_

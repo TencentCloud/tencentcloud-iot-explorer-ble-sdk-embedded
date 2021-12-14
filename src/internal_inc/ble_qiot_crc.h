@@ -13,8 +13,8 @@
  *
  */
 
-#ifndef QCLOUD_BLE_QIOT_CRC_H
-#define QCLOUD_BLE_QIOT_CRC_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CRC_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CRC_H_
 
 #if defined(__cplusplus)
 extern "C" {
@@ -28,4 +28,4 @@ uint32_t ble_qiot_crc32(uint32_t crc, const uint8_t *buf, int len);
 #if defined(__cplusplus)
 }
 #endif
-#endif  // QCLOUD_BLE_QIOT_HMAC_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CRC_H_

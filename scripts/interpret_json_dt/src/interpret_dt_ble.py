@@ -70,6 +70,7 @@ class TEMPLATE_CONSTANTS:
 action_max_input_id = 0
 action_max_output_id = 0
 
+
 class iot_object:
     def __init__(self):
         pass
@@ -187,6 +188,7 @@ class iot_object:
                    "\n\tble_qiot_log_d(\"set id {} time value %d\", tmp_time);" \
                    "\n\treturn 0;\n}}\n".format(id)
         return ctx
+
 
 class iot_bool(iot_object):
     def __init__(self, ctx):
@@ -314,6 +316,7 @@ class iot_float(iot_object):
         ctx += self.get_value_function(ctx_format, id, TEMPLATE_CONSTANTS.FLOAT)
         return ctx
 
+
 class iot_enum(iot_object):
     def __init__(self, ctx):
         self.enum = ctx
@@ -353,6 +356,7 @@ class iot_enum(iot_object):
         ctx += self.set_value_function(ctx_format, id, TEMPLATE_CONSTANTS.ENUM)
         ctx += self.get_value_function(ctx_format, id, TEMPLATE_CONSTANTS.ENUM)
         return ctx
+
 
 class iot_timestamp(iot_object):
     def __init__(self):

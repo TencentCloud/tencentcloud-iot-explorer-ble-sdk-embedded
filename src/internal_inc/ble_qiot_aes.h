@@ -17,8 +17,8 @@
  * limitations under the License.
  *
  */
-#ifndef QCLOUD_IOT_UTILS_AES_H_
-#define QCLOUD_IOT_UTILS_AES_H_
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_AES_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_AES_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,7 +27,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-//========Platform================================//
+//  ========Platform================================  //
 #define UTILS_AES_C
 #define UTILS_CIPHER_MODE_CBC
 //#define UTILS_SELF_TEST
@@ -42,7 +42,7 @@ extern "C" {
 #define UTILS_INTERNAL_VALIDATE(cond) \
     do {                              \
     } while (0)
-//==============================================//
+//  ==============================================  //
 
 /* padlock.c and aesni.c rely on these values! */
 #define UTILS_AES_ENCRYPT 1 /**< AES encryption. */
@@ -277,17 +277,6 @@ UTILS_DEPRECATED void utils_aes_decrypt(utils_aes_context *ctx, const unsigned c
 #undef UTILS_DEPRECATED
 #endif /* !UTILS_DEPRECATED_REMOVED */
 
-#if defined(UTILS_SELF_TEST)
-/**
- * \brief          Checkup routine.
- *
- * \return         \c 0 on success.
- * \return         \c 1 on failure.
- */
-int utils_aes_self_test(int verbose);
-
-#endif /* UTILS_SELF_TEST */
-
 int aes_sample(int verbose);
 
 int utils_aes_cbc(uint8_t *pInData, uint32_t datalen, uint8_t *pOutData, uint32_t outBuffLen, uint8_t mode,
@@ -296,4 +285,4 @@ int utils_aes_cbc(uint8_t *pInData, uint32_t datalen, uint8_t *pOutData, uint32_
 #ifdef __cplusplus
 }
 #endif
-#endif
+#endif //TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_AES_H_

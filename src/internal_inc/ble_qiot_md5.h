@@ -13,8 +13,8 @@
  *
  */
 
-#ifndef QCLOUD_BLE_QIOT_MD5_H
-#define QCLOUD_BLE_QIOT_MD5_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_MD5_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_MD5_H_
 
 #include <stdint.h>
 
@@ -91,4 +91,4 @@ void utils_md5(const unsigned char *input, unsigned int ilen, unsigned char outp
 #ifdef __cplusplus
 }
 #endif
-#endif
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_MD5_H_

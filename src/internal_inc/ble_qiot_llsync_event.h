@@ -9,8 +9,8 @@
  * limitations under the License.
  *
  */
-#ifndef QCLOUD_BLE_QIOT_LLSYNC_EVENT_H
-#define QCLOUD_BLE_QIOT_LLSYNC_EVENT_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_LLSYNC_EVENT_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_LLSYNC_EVENT_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,4 +53,4 @@ ble_qiot_ret_status_t ble_event_sync_wait_time(void);
 }
 #endif
 
-#endif  // QCLOUD_BLE_QIOT_LLSYNC_EVENT_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_LLSYNC_EVENT_H_

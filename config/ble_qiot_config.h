@@ -10,8 +10,8 @@
  *
  */
 
-#ifndef QCLOUD_BLE_QIOT_CONFIG_H
-#define QCLOUD_BLE_QIOT_CONFIG_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CONFIG_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CONFIG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,8 +30,8 @@ extern "C" {
 // if the device in the bound state, broadcast dose not stop automatically.
 #define BLE_QIOT_BUTTON_BROADCAST 0
 #if BLE_QIOT_BUTTON_BROADCAST
-    #define BLE_QIOT_BIND_TIMEOUT (2 * 60 * 1000)  // unit: ms
-#endif //BLE_QIOT_BUTTON_BROADCAST
+    #define BLE_QIOT_BIND_TIMEOUT (2 * 60 * 1000)   // unit: ms
+#endif  // BLE_QIOT_BUTTON_BROADCAST
 
 // in some BLE stack the default ATT_MTU is 23, set BLE_QIOT_REMOTE_SET_MTU is 1 if you want to reset the mtu by the
 // Tencent Lianlian. Tencent Lianlian will set the mtu get from function ble_get_user_data_mtu_size()
@@ -71,14 +71,14 @@ extern "C" {
     // dynamic register
     #define BLE_QIOT_DYNREG_ENABLE  0
     // some users hope to confirm on the device before the binding, set BLE_QIOT_SECURE_BIND is 1 to enable the secure
-    // binding and enable secure bind in iot-explorer console. When the server is bound, the device callback ble_secure_bind_user_cb()
-    // will be triggered, the user agree or refuse connect by ble_secure_bind_user_confirm(). If the device does not respond
-    // and the connection timeout, or the user cancel the connection in Tencent Lianlian, a notify will received in function
-    // ble_secure_bind_user_notify().
+    // binding and enable secure bind in iot-explorer console. When the server is bound, the device callback 
+    // ble_secure_bind_user_cb() will be triggered, the user agree or refuse connect by ble_secure_bind_user_confirm(). 
+    // If the device does not respond and the connection timeout, or the user cancel the connection in Tencent Lianlian, 
+    // a notify will received in function ble_secure_bind_user_notify().
     #define BLE_QIOT_SECURE_BIND 0
     #if BLE_QIOT_SECURE_BIND
         #define BLE_QIOT_BIND_WAIT_TIME 60
-    #endif //BLE_QIOT_SECURE_BIND
+    #endif  // BLE_QIOT_SECURE_BIND
 
     // some sdk info needs to stored on the device and the address is up to you
     #define BLE_QIOT_RECORD_FLASH_ADDR 0x3f000
@@ -94,20 +94,20 @@ extern "C" {
         #if BLE_QIOT_SUPPORT_RESUMING
             // storage ota info in the flash if support resuming ota file
             #define BLE_QIOT_OTA_INFO_FLASH_ADDR (BLE_QIOT_RECORD_FLASH_ADDR + 0x1000)
-        #endif //BLE_QIOT_SUPPORT_RESUMING
+        #endif  // BLE_QIOT_SUPPORT_RESUMING
 
         #define BLE_QIOT_TOTAL_PACKAGES 0xFF  // the total package numbers in a loop
-        #define BLE_QIOT_PACKAGE_LENGTH 0x10  // the user data length in package, ble_get_user_data_mtu_size() - 3 is the max
+        #define BLE_QIOT_PACKAGE_LENGTH 0x10  // the user data length in package, MAX: ble_get_user_data_mtu_size() - 6
         #define BLE_QIOT_RETRY_TIMEOUT  0x5   // the max interval between two packages, unit: second
         // the time spent for device reboot, the server waiting the device version reported after upgrade. unit: second
         #define BLE_QIOT_REBOOT_TIME      20
         #define BLE_QIOT_PACKAGE_INTERVAL 0x05  // the interval between two packages send by the server
-        // the package from the server will storage in the buffer, write the buffer to the flash at one time when the buffer
-        // overflow. reduce the flash write can speed up file download, we suggest the BLE_QIOT_OTA_BUF_SIZE is multiples
-        // of BLE_QIOT_PACKAGE_LENGTH and equal flash page size
+        // the package from the server will storage in the buffer, write the buffer to the flash at one time when the 
+        // buffer overflow. reduce the flash write can speed up file download, we suggest the BLE_QIOT_OTA_BUF_SIZE is 
+        // multiples of BLE_QIOT_PACKAGE_LENGTH and equal flash page size
         #define BLE_QIOT_OTA_BUF_SIZE (4096)
-    #endif //BLE_QIOT_SUPPORT_OTA
-#endif //BLE_QIOT_LLSYNC_STANDARD
+    #endif  // BLE_QIOT_SUPPORT_OTA
+#endif  // BLE_QIOT_LLSYNC_STANDARD
 
 #define BLE_QIOT_LLSYNC_CONFIG_NET  (!BLE_QIOT_LLSYNC_STANDARD)   // support llsync configure network
 
@@ -119,4 +119,4 @@ extern "C" {
 }
 #endif
 
-#endif  // QCLOUD_BLE_QIOT_CONFIG_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_CONFIG_H_

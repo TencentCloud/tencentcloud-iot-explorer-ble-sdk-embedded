@@ -9,8 +9,8 @@
  * limitations under the License.
  *
  */
-#ifndef QCLOUD_BLE_QIOT_EXPORT_H
-#define QCLOUD_BLE_QIOT_EXPORT_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_EXPORT_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_EXPORT_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,10 +30,10 @@ extern "C" {
 #else
 #if BLE_QIOT_LLSYNC_STANDARD
 #define IOT_BLE_UUID_SERVICE 0xFFE0
-#endif //BLE_QIOT_LLSYNC_STANDARD
+#endif  // BLE_QIOT_LLSYNC_STANDARD
 #if BLE_QIOT_LLSYNC_CONFIG_NET
 #define IOT_BLE_UUID_SERVICE 0xFFF0
-#endif //BLE_QIOT_LLSYNC_CONFIG_NET
+#endif  // BLE_QIOT_LLSYNC_CONFIG_NET
 #endif
 
 // characteristics uuid
@@ -43,7 +43,7 @@ extern "C" {
 #if BLE_QIOT_LLSYNC_STANDARD
     #define IOT_BLE_UUID_DATA        0xFFE2  // used to send data to the device from server
     #define IOT_BLE_UUID_OTA         0xFFE4  // used to send ota data to the device from server
-#endif //BLE_QIOT_LLSYNC_STANDARD
+#endif  // BLE_QIOT_LLSYNC_STANDARD
 
 typedef enum {
     GATT_CHAR_BROADCAST      = (1 << 0),  // Broadcasting of the value permitted.
@@ -229,7 +229,7 @@ typedef ble_qiot_ret_status_t (*ble_ota_valid_file_callback)(uint32_t file_size,
  */
 void ble_ota_callback_reg(ble_ota_start_callback start_cb, ble_ota_stop_callback stop_cb,
                           ble_ota_valid_file_callback valid_file_cb);
-#endif //BLE_QIOT_LLSYNC_STANDARD
+#endif  // BLE_QIOT_LLSYNC_STANDARD
 
 #if BLE_QIOT_LLSYNC_CONFIG_NET
 
@@ -284,9 +284,9 @@ ble_qiot_ret_status_t ble_event_report_wifi_token(uint8_t result);
  */
 ble_qiot_ret_status_t ble_event_report_wifi_log(const uint8_t *log, uint16_t log_size);
 
-#endif //BLE_QIOT_LLSYNC_CONFIG_NET
+#endif  // BLE_QIOT_LLSYNC_CONFIG_NET
 
 #ifdef __cplusplus
 }
 #endif
-#endif  // QCLOUD_BLE_QIOT_EXPORT_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_EXPORT_H_

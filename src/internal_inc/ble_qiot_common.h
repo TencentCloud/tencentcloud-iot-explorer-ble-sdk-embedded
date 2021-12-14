@@ -9,8 +9,8 @@
  * limitations under the License.
  *
  */
-#ifndef QCLOUD_BLE_QIOT_COMMON_H
-#define QCLOUD_BLE_QIOT_COMMON_H
+#ifndef TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_COMMON_H_
+#define TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_COMMON_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,7 +20,7 @@ extern "C" {
 #define BLE_QIOT_DEVICE_NAME_LEN (48)  // max length of device name
 #define BLE_QIOT_PSK_LEN         (24)  // fixed length of device secret key
 #define BLE_QIOT_MAC_LEN         (6)   // fixed length of mac
-#define BLE_QIOT_PRODUCT_SECRET_LEN (24) // fixed length of product secret key
+#define BLE_QIOT_PRODUCT_SECRET_LEN (24)  // fixed length of product secret key
 
 #define SWAP_32(x) \
     ((((x)&0xFF000000) >> 24) | (((x)&0x00FF0000) >> 8) | (((x)&0x0000FF00) << 8) | (((x)&0x000000FF) << 24))
@@ -43,4 +43,4 @@ extern "C" {
 }
 #endif
 
-#endif  // QCLOUD_BLE_QIOT_COMMON_H
+#endif  // TENCENTCLOUD_IOT_EXPLORER_BLE_SDK_EMBEDDED_INTERNAL_INC_BLE_QIOT_COMMON_H_
