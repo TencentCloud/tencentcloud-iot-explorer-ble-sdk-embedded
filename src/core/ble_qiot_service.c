@@ -558,17 +558,11 @@ int ble_lldata_msg_handle(const char *in_buf, int in_len)
         case BLE_QIOT_MSG_TYPE_EVENT:
             if (BLE_QIOT_EFFECT_REPLY == data_effect) {
                 ret = ble_lldata_event_handle(id, p_data + 1, p_data_len - 1);
-            } else {
-                ble_qiot_log_e("invalid event data effect");
-                ret = BLE_QIOT_RS_ERR;
             }
             break;
         case BLE_QIOT_MSG_TYPE_ACTION:
             if (BLE_QIOT_EFFECT_REQUEST == data_effect) {
                 ret = ble_lldata_action_handle(id, p_data + 3, p_data_len - 3);
-            } else {
-                ble_qiot_log_e("invalid action data effect");
-                ret = BLE_QIOT_RS_ERR;
             }
             break;
         default:

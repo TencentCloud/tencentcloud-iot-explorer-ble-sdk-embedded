@@ -276,9 +276,7 @@ void utils_sha1_update(iot_sha1_context *ctx, const unsigned char *input, size_t
     }
 }
 
-static const unsigned char iot_sha1_padding[64] = {0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                   0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                   0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static const unsigned char iot_sha1_padding[64] = {0x80, 0};
 
 /*
  * SHA-1 final digest

@@ -249,9 +249,7 @@ void utils_md5_update(iot_md5_context *ctx, const unsigned char *input, unsigned
     }
 }
 
-static const unsigned char iot_md5_padding[64] = {0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+static const unsigned char iot_md5_padding[64] = {0x80, 0};
 
 /*
  * MD5 final digest
