@@ -65,9 +65,10 @@ ble_qiot_ret_status_t ble_advertising_stop(void);
 
 /**
  * @brief get the ATT_MTU user want to used
+ * @param type Type of system currently paired
  * @return the value
  */
-uint16_t ble_get_user_data_mtu_size(void);
+uint16_t ble_get_user_data_mtu_size(e_system type);
 
 /**
  * @brief send a notification to host, use characteristic IOT_BLE_UUID_EVENT

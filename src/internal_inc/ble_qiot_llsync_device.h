@@ -50,11 +50,13 @@ typedef enum {
     E_DEV_MSG_UNBIND,         // unbind request
     E_DEV_MSG_CONN_SUCC,      // inform connect result
     E_DEV_MSG_CONN_FAIL,
-    E_DEV_MSG_UNBIND_SUCC,  // inform unbind result
+    E_DEV_MSG_UNBIND_SUCC,     // inform unbind result
     E_DEV_MSG_UNBIND_FAIL,
     E_DEV_MSG_SET_MTU_RESULT,  // inform set mtu result
     E_DEV_MSG_BIND_TIMEOUT,    // inform bind timeout
     E_DEV_MSG_DYNREG,
+    E_DEV_MSG_DEV_START,       // inform app ready
+    E_DEV_MSG_IOS_SYSTEM,      // inform phone is ios system
     E_DEV_MSG_GET_DEV_INFO = 0xE0,  // configure network start
     E_DEV_MSG_SET_WIFI_MODE,
     E_DEV_MSG_SET_WIFI_INFO,
@@ -179,6 +181,12 @@ void llsync_mtu_update(uint16_t sync_mtu);
 
 // llsync should dynreg
 uint8_t llsync_need_dynreg(void);
+
+// Set the current paired phone system
+void ble_system_type_set(e_system type);
+
+// Get the current paired phone system
+uint8_t ble_system_type_get(void);
 
 #ifdef __cplusplus
 }
