@@ -315,6 +315,9 @@
    */
    ble_qiot_ret_status_t ble_timer_delete(ble_timer_t timer_id);
    
+   /* 设备启动接口，设备绑定+连接成功后SDK会调用此函数 */
+    void ble_qiot_dev_start(void);
+
    ```
 
    您可以参考`ESP32`的[接口](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded/blob/master/samples/esp32/components/qcloud_llsync/hal/ble_qiot_ble_device.c)实现。

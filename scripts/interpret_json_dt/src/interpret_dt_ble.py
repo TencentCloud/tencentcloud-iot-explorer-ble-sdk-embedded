@@ -328,7 +328,7 @@ class iot_enum(iot_object):
             ctx += "\n// define {} {} enum".format(id, sub_id)
             ctx += "\nenum {"
             for k in sorted(self.enum.keys()):
-                ctx += "\n\t" + enum_format.format(id.upper(), sub_id.upper(), int(k), int(k))
+                ctx += "\n\t" + enum_format.format(id.upper(), sub_id.upper(), self.enum[k].upper(), int(k))
             enum_format = ctx_format + "_{}_BUTT,"
             ctx += "\n\t" + enum_format.format(id.upper(), sub_id.upper())
             ctx += "\n};\n"
@@ -336,7 +336,7 @@ class iot_enum(iot_object):
             ctx += "\n// define {} enum".format(id)
             ctx += "\nenum {"
             for k in sorted(self.enum.keys()):
-                ctx += "\n\t" + enum_format.format(id.upper(), int(k), int(k))
+                ctx += "\n\t" + enum_format.format(id.upper(), self.enum[k].upper(), int(k))
             enum_format = ctx_format + "_{}_BUTT,"
             ctx += "\n\t" + enum_format.format(id.upper())
             ctx += "\n};\n"

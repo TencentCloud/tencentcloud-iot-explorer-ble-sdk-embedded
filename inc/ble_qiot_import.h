@@ -222,6 +222,12 @@ uint32_t ble_ota_get_download_addr(void);
  * @return write_len is success, other is error
  */
 int ble_ota_write_flash(uint32_t flash_addr, const char *write_buf, uint16_t write_len);
+
+/**
+ * @brief Equipment is ready
+ * @return void
+ */
+void ble_qiot_dev_start(void);
 #endif  // BLE_QIOT_LLSYNC_STANDARD
 
 #if BLE_QIOT_LLSYNC_CONFIG_NET

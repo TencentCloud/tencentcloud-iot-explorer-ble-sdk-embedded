@@ -470,6 +470,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
             break;
         case E_DEV_MSG_DEV_START:
             // Device start-up is complete and actions such as attribute reporting can be performed
+            ble_dev_start_user_inform();
             break;
         case E_DEV_MSG_IOS_SYSTEM:
             ble_system_type_set(SYSTEM_IS_IOS);
