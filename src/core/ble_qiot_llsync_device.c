@@ -39,6 +39,7 @@ static e_llsync_bind_state       sg_llsync_bind_state;        // llsync bind sta
 static e_llsync_connection_state sg_llsync_connection_state;  // llsync connection state in used
 static e_ble_connection_state    sg_ble_connection_state;     // ble connection state in used
 static uint16_t                  sg_llsync_mtu;               // the mtu for llsync slice data
+static uint8_t                   sg_system_type;              // system type in current pairings
 
 uint16_t llsync_mtu_get(void)
 {
@@ -85,6 +86,23 @@ void ble_connection_state_set(e_ble_connection_state new_state)
 bool ble_is_connected(void)
 {
     return sg_ble_connection_state == E_BLE_CONNECTED;
+}
+
+void ble_system_type_set(e_system type)
+{
+    sg_system_type = type;
+}
+
+uint8_t ble_system_type_get(void)
+{
+    return sg_system_type;
+}
+
+void ble_dev_start_user_inform(void)
+{
+    if (sg_device_info.ble_qiot_dev_start) {
+        sg_device_info.ble_qiot_dev_start();
+    }
 }
 
 // [1byte bind state] + [6 bytes mac] + [8bytes identify string]/[10 bytes product id]
@@ -147,6 +165,9 @@ int ble_inform_mtu_result(const char *result, uint16_t data_len)
     if (LLSYNC_MTU_SET_RESULT_ERR == ret) {
         return ble_event_sync_mtu(ATT_DEFAULT_MTU);
     } else if (0 == ret) {
+        if (SYSTEM_IS_IOS == ble_system_type_get()) {
+            ble_event_sync_mtu(ble_get_user_data_mtu_size(ble_system_type_get()));
+        }
         return BLE_QIOT_RS_OK;
     } else {
         llsync_mtu_update(ATT_MTU_TO_LLSYNC_MTU(ret));
@@ -481,6 +502,10 @@ ble_qiot_ret_status_t ble_init_flash_data(void)
     if (0 == ble_get_device_name(sg_device_info.device_name)) {
         ble_qiot_log_e("llsync get device name failed");
         return BLE_QIOT_RS_ERR_FLASH;
+    }
+
+    if (NULL == sg_device_info.ble_qiot_dev_start) {
+        sg_device_info.ble_qiot_dev_start = ble_qiot_dev_start;
     }
 
 #if BLE_QIOT_LLSYNC_STANDARD

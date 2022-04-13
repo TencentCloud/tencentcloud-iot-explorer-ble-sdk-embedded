@@ -315,6 +315,9 @@
    */
    ble_qiot_ret_status_t ble_timer_delete(ble_timer_t timer_id);
    
+   /* 设备启动接口，设备绑定+连接成功后SDK会调用此函数 */
+    void ble_qiot_dev_start(void);
+
    ```
 
    您可以参考`ESP32`的[接口](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded/blob/master/samples/esp32/components/qcloud_llsync/hal/ble_qiot_ble_device.c)实现。
@@ -428,10 +431,10 @@
    /* 用户指定MTU。当BLE_QIOT_REMOTE_SET_MTU设置为1时，小程序连接设备后会去修改MTU并通知设备。否则使用默认MTU(23)进行通信。
    uint16_t ble_get_user_data_mtu_size(void)
    {
-       return 128;
+       return (SYSTEM_IS_ANDROID == type) ? 128 : 500;
    }
    */
-   uint16_t ble_get_user_data_mtu_size(void);
+   uint16_t ble_get_user_data_mtu_size(e_system type);
    ```
 
    您可以参考`ESP32`的蓝牙协议栈适配代码，[请参见](https://github.com/tencentyun/qcloud-iot-explorer-BLE-sdk-embedded/blob/master/samples/esp32/components/qcloud_llsync/hal/ble_qiot_ble_service.c)。

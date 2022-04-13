@@ -176,9 +176,9 @@ class iot_object:
                    "\n\tble_qiot_log_d(\"set id {} float value %f\", tmp_float);" \
                    "\n\treturn 0;\n}}\n".format(id)
         elif type == TEMPLATE_CONSTANTS.ENUM:
-            ctx += "\n{{\n\tint tmp_enum = 0;" \
+            ctx += "\n{{\n\tuint16_t tmp_enum = 0;" \
                    "\n\tmemcpy(&tmp_enum, data, sizeof(uint16_t));" \
-                   "\n\ttmp_enum = NTOHL(tmp_enum);" \
+                   "\n\ttmp_enum = NTOHS(tmp_enum);" \
                    "\n\tble_qiot_log_d(\"set id {} int value %d\", tmp_enum);" \
                    "\n\treturn 0;\n}}\n".format(id)
         elif type == TEMPLATE_CONSTANTS.TIMESTAMP:
@@ -217,7 +217,7 @@ class iot_int(iot_object):
         self.max = ctx[TEMPLATE_CONSTANTS.MAX]
         self.start = ctx[TEMPLATE_CONSTANTS.START]
         self.step = ctx[TEMPLATE_CONSTANTS.STEP]
-        self.unit = ctx[TEMPLATE_CONSTANTS.UNIT]
+        # self.unit = ctx[TEMPLATE_CONSTANTS.UNIT]
 
     def get_header_data(self, ctx_format, id="", sub_id=""):
         ctx = ""

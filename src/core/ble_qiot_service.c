@@ -377,6 +377,7 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
                 ble_qiot_log_e("write bind result failed");
                 ret = BLE_QIOT_RS_ERR;
             }
+            ble_system_type_set(SYSTEM_IS_ANDROID);
             break;
         case E_DEV_MSG_BIND_FAIL:
             ble_qiot_log_i("get msg bind fail");
@@ -466,6 +467,13 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
 #endif //BLE_QIOT_LLSYNC_CONFIG_NET
         case E_DEV_MSG_SET_MTU_RESULT:
             ble_inform_mtu_result(p_data + 1, p_data_len - 1);
+            break;
+        case E_DEV_MSG_DEV_START:
+            // Device start-up is complete and actions such as attribute reporting can be performed
+            ble_dev_start_user_inform();
+            break;
+        case E_DEV_MSG_IOS_SYSTEM:
+            ble_system_type_set(SYSTEM_IS_IOS);
             break;
         default:
             ble_qiot_log_e("unknow type %d", ch);
@@ -558,11 +566,17 @@ int ble_lldata_msg_handle(const char *in_buf, int in_len)
         case BLE_QIOT_MSG_TYPE_EVENT:
             if (BLE_QIOT_EFFECT_REPLY == data_effect) {
                 ret = ble_lldata_event_handle(id, p_data + 1, p_data_len - 1);
+            } else {
+                ble_qiot_log_e("invalid event data effect");
+                ret = BLE_QIOT_RS_ERR;
             }
             break;
         case BLE_QIOT_MSG_TYPE_ACTION:
             if (BLE_QIOT_EFFECT_REQUEST == data_effect) {
                 ret = ble_lldata_action_handle(id, p_data + 3, p_data_len - 3);
+            } else {
+                ble_qiot_log_e("invalid action data effect");
+                ret = BLE_QIOT_RS_ERR;
             }
             break;
         default:

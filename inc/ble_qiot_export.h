@@ -85,6 +85,11 @@ typedef enum {
     BLE_QIOT_RS_VALID_SIGN_ERR = -4,
 } ble_qiot_ret_status_t;
 
+typedef enum {
+    SYSTEM_IS_IOS,
+    SYSTEM_IS_ANDROID,
+} e_system;
+
 /**
  * @brief get llsync services context
  *
