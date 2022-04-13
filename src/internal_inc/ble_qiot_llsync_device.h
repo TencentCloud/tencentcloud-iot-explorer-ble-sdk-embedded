@@ -90,7 +90,6 @@ typedef struct ble_device_info_t_ {
 #if BLE_QIOT_DYNREG_ENABLE
     char product_secret[BLE_QIOT_PRODUCT_SECRET_LEN];
 #endif
-    void (*ble_qiot_dev_start)(void);
 } ble_device_info;
 
 typedef struct ble_core_data_ {
@@ -188,9 +187,6 @@ void ble_system_type_set(e_system type);
 
 // Get the current paired phone system
 uint8_t ble_system_type_get(void);
-
-// Equipment is ready
-void ble_dev_start_user_inform(void);
 
 #ifdef __cplusplus
 }

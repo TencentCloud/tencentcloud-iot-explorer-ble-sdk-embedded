@@ -21,6 +21,8 @@ extern "C" {
 #include "ble_qiot_llsync_data.h"
 #include "ble_qiot_template.h"
 
+typedef void (*ble_qiot_dev_start_cb)(void);
+
 // message type, reference data template
 enum {
     BLE_QIOT_MSG_TYPE_PROPERTY = 0,
@@ -91,6 +93,9 @@ int ble_lldata_msg_handle(const char *in_buf, int in_len);
 // ota message from remote
 // return 0 is success, other is error
 int ble_ota_msg_handle(const char *buf, uint16_t len);
+
+// Equipment is ready
+void ble_dev_start_user_inform(void);
 
 #ifdef __cplusplus
 }

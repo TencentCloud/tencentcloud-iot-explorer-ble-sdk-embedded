@@ -429,7 +429,7 @@
    ble_qiot_ret_status_t ble_send_notify(uint8_t *buf, uint8_t len);
    
    /* 用户指定MTU。当BLE_QIOT_REMOTE_SET_MTU设置为1时，小程序连接设备后会去修改MTU并通知设备。否则使用默认MTU(23)进行通信。
-   uint16_t ble_get_user_data_mtu_size(void)
+   uint16_t ble_get_user_data_mtu_size(e_system type)
    {
        return (SYSTEM_IS_ANDROID == type) ? 128 : 500;
    }

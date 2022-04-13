@@ -98,13 +98,6 @@ uint8_t ble_system_type_get(void)
     return sg_system_type;
 }
 
-void ble_dev_start_user_inform(void)
-{
-    if (sg_device_info.ble_qiot_dev_start) {
-        sg_device_info.ble_qiot_dev_start();
-    }
-}
-
 // [1byte bind state] + [6 bytes mac] + [8bytes identify string]/[10 bytes product id]
 int ble_get_my_broadcast_data(char *out_buf, int buf_len)
 {
@@ -502,10 +495,6 @@ ble_qiot_ret_status_t ble_init_flash_data(void)
     if (0 == ble_get_device_name(sg_device_info.device_name)) {
         ble_qiot_log_e("llsync get device name failed");
         return BLE_QIOT_RS_ERR_FLASH;
-    }
-
-    if (NULL == sg_device_info.ble_qiot_dev_start) {
-        sg_device_info.ble_qiot_dev_start = ble_qiot_dev_start;
     }
 
 #if BLE_QIOT_LLSYNC_STANDARD
