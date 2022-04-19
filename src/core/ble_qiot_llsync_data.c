@@ -94,8 +94,6 @@ static ble_qiot_ret_status_t ble_lldata_property_data_handle(bool is_request, co
     e_ble_tlv tlv;
     int8_t    ret = BLE_QIOT_REPLY_SUCCESS;
 
-    ble_qiot_ret_status_t inform_ret = BLE_QIOT_RS_OK;
-
     ble_qiot_log_d("handle property data");
     while (parse_len < buf_len) {
         memset(&tlv, 0, sizeof(e_ble_tlv));
