@@ -31,7 +31,7 @@ extern "C" {
 
 // llsync support data fragment, so we need to package all the data before parsing if the data is slice
 static ble_event_slice_t sg_ble_slice_data;
-static ble_qiot_dev_start sg_ble_qiot_dev_start_cb = NULL;
+static ble_qiot_dev_start_cb sg_ble_qiot_dev_start_cb = NULL;
 
 #if BLE_QIOT_BUTTON_BROADCAST
 static ble_timer_t sg_bind_timer = NULL;
@@ -201,8 +201,8 @@ ble_qiot_ret_status_t ble_qiot_advertising_stop(void)
 
 void ble_dev_start_user_inform(void)
 {
-    if (sg_device_info.ble_qiot_dev_start) {
-        sg_device_info.ble_qiot_dev_start();
+    if (sg_ble_qiot_dev_start_cb) {
+        sg_ble_qiot_dev_start_cb();
     }
 }
 
