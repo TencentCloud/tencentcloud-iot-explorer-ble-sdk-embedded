@@ -114,7 +114,7 @@ int ble_user_property_struct_array_data_get(uint8_t id, char *buf, uint16_t len)
     uint16_t data_len = 0;
     uint8_t array_type = sg_ble_property_array[id].type & 0xF0;
     uint16_t tmp_len = 0;
-    uint16_t ret_len = 0;
+    int ret_len = 0;
 
     if (BLE_QIOT_ARRAY_STRUCT_BIT_MASK == array_type){
         return sg_ble_property_array[id].get_cb(buf, len);
@@ -293,7 +293,6 @@ int ble_user_property_struct_array_set(uint8_t id, const char *in_buf, uint16_t 
     uint16_t  parse_len = 2;
     uint16_t  ret_len   = 0;
     e_ble_tlv tlv;
-    char param_num = 0;
     uint16_t temp = 0;
     uint16_t temp_len = 0;
     uint8_t array_num = 0;
@@ -343,7 +342,7 @@ int ble_user_property_struct_array_set(uint8_t id, const char *in_buf, uint16_t 
 
 int ble_user_property_struct_array_get(uint8_t id, char *in_buf, uint16_t buf_len, ble_property_t struct_arr[], uint8_t arr_size)
 {
-    uint8_t  property_id   = 0;
+    int      property_id   = 0;
     uint8_t  property_type = 0;
     int      property_len  = 0;
     char *   data_buf      = in_buf;
@@ -352,9 +351,10 @@ int ble_user_property_struct_array_get(uint8_t id, char *in_buf, uint16_t buf_le
     uint16_t last_len = 0;
     uint16_t index = 0;
     uint8_t param_num = sg_ble_property_array[id].elem_num;
+    int i;
 
-    for (int i = 0; i < param_num; i++) {
-        for (int property_id = 0; property_id < arr_size; property_id++){
+    for (i = 0; i < param_num; i++) {
+        for (property_id = 0; property_id < arr_size; property_id++){
             property_type = struct_arr[property_id].type;
             if (property_type >= BLE_QIOT_DATA_TYPE_BUTT) {
                 ble_qiot_log_e("member id %d type %d invalid", property_id, property_type);

@@ -314,8 +314,10 @@ int ble_device_info_msg_handle(const char *in_buf, int in_len)
     uint16_t tmp_len      = 0;
     uint8_t  header_len   = 0;
     int      ret          = BLE_QIOT_RS_OK;
+#if BLE_QIOT_LLSYNC_CONFIG_NET
     char *   p_ssid       = NULL;
     char *   p_passwd     = NULL;
+#endif
     // This flag is use to avoid attacker jump "ble_conn_get_authcode()" step, then
     // send 'E_DEV_MSG_CONN_SUCC' msg, and device straightly set 'E_LLSYNC_CONNECTED' flag.
     // This behavior make signature check useless lead to risk.
