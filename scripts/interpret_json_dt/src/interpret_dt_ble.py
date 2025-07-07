@@ -55,7 +55,7 @@ class TEMPLATE_CONSTANTS:
     INPUT = "input"
     OUTPUT = "output"
     COPYRIGHT = "/*\n\
- * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.\n\
+ * Copyright (C) 2019 Tencent. All rights reserved.\n\
  * Licensed under the MIT License (the \"License\"); you may not use this file except in\n\
  * compliance with the License. You may obtain a copy of the License at\n\
  * http://opensource.org/licenses/MIT\n\
